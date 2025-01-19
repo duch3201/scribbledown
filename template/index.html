@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <title>{BLOGNAMETITLE} | {PAGETITLE}</title>
+</head>
+<body>
+    <div id="app">
+        <div id="sidebar">
+            <div id="titlediv">
+                <button onclick="showSidebar()" id="ham">ham</button>
+                <h1>{BLOGNAME}</h1>
+            </div>
+            <div id="nav">
+                {PAGES}
+            </div>
+        </div>
+            <main>
+                <button onclick="showSidebar()" id="ham">ham</button>
+                {PAGECONTENT}
+            </main>
+    </div>
+    <footer>{FOOTERCONTENT}</footer>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+<script>hljs.highlightAll();</script>
+</html>
