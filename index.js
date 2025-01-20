@@ -10,6 +10,8 @@ var crypto = require('crypto');
 let blogConfig
 let isAppModeDev;
 let rebuild;
+let currentTheme;
+let currentThemeConfig;
 
 
 const app = express();
@@ -23,7 +25,7 @@ app.use((req, res, next) => {
 
 async function build() {
     console.log('Building files...');
-    const HTMLtemplate = await fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
+    const HTMLtemplate = await fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
     let fileContent;
     let checksums = {};
     if (fs.existsSync(path.join(__dirname, 'checksums.json'))) {
@@ -64,8 +66,8 @@ async function build() {
     }
 
     // add checksums for template, css, and js files
-    const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
-    const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
+    const js = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'app.js'), 'utf8');
     const currentChecksum = generateChecksum(HTMLtemplate + css + js);
     checksums['template'] = currentChecksum;
 
@@ -114,9 +116,18 @@ async function init() {
             blogConfig = fs.readFileSync(path.join(__dirname, 'blog.conf'), 'utf8');
             // blogConfig = fs.readFileSync('./blog.conf', 'utf8');
             blogConfig = JSON.parse(blogConfig);
+            currentTheme = blogConfig.currentTheme;
         } catch (error) {
             console.error('---------\nError reading blog.conf:', error);
             throw error;
+        }
+
+        try {
+            const themeConfig = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'config.json'), 'utf8');
+            currentThemeConfig = JSON.parse(themeConfig);
+        } catch (error) {
+            console.warn('---------\nError reading theme config:\n', error);
+            console.warn(`will not be able to display theme's name and author\n----------`)
         }
 
         const date = new Date();
@@ -170,7 +181,7 @@ async function init() {
                     fs.readdirSync(path.join(__dirname, 'files', fileName)).forEach(subfile => {
                         if (subfile.endsWith('.md')) {
                             // const fileContent = fs.readFileSync(`./files/${fileName}/${subfile}`, 'utf8');
-                            const fileContent = fs.readFileSync(path.join(__dirname, 'files', subfile), 'utf8');
+                            const fileContent = fs.readFileSync(path.join(__dirname, 'files', fileName, subfile), 'utf8');
                             const currentChecksum = generateChecksum(fileContent);
                             const filePath = `${fileName}/${subfile}`;
                             if (!checksums[filePath] || checksums[filePath] !== currentChecksum) {
@@ -183,9 +194,9 @@ async function init() {
             });
 
             // check if the template, css or js files have changed
-            const HTMLtemplate = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
-            const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
-            const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
+            const HTMLtemplate = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
+            const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
+            const js = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'app.js'), 'utf8');
             const currentChecksum = generateChecksum(HTMLtemplate + css + js);
             if (!checksums['template'] || checksums['template'] !== currentChecksum) {
                 console.log('Template, CSS, or JS files have changed');
@@ -246,8 +257,8 @@ async function yeettotemplate(template, content, frontmatter) {
     const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
     
     try {
-        const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
-        const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
+        const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
+        const js = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'app.js'), 'utf8');
 
         // Process CSS
         const cssResult = await postcss([cssnano])
@@ -348,7 +359,7 @@ async function yeettotemplate(template, content, frontmatter) {
     template = template.replace('{BLOGNAME}', `<a href="/" id="blogname"><span>${blogConfig.blogname}</span></a>`);
     // console.log(linksArray)
     template = template.replace('</body>', `</body><style>${hightlightjstheme}</style>`);
-    template = template.replace('{FOOTERCONTENT}', (blogConfig.footerContent).replace("{year}", new Date().getFullYear()));
+    template = template.replace('{FOOTERCONTENT}', ((blogConfig.footerContent).replace("{year}", new Date().getFullYear())+"<br>Theme: '"+currentThemeConfig.name+"' by "+currentThemeConfig.author));
     template = template.replace('{PAGES}', `<ul>${processedLinks.join('')}</ul>`);
 
     // console.log(template)
@@ -466,7 +477,7 @@ function parseMarkdown(markdown) {
 app.get('/', async (req, res) => {
     if (isAppModeDev) {
         try {
-            let template = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
+            let template = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
             const contentContent = fs.readFileSync(path.join(__dirname, 'files', 'index.md'), 'utf8');
             let {content, frontmatter} = parseMarkdown(contentContent);
             
@@ -492,7 +503,7 @@ app.get('/*', async (req, res) => {
     try {
         const filePath = path.join(__dirname, 'files', req.params[0] + '.md');
         console.log(filePath)
-        let template = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
+        let template = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
         const contentContent = fs.readFileSync(filePath, 'utf8');
         let {content, frontmatter} = parseMarkdown(contentContent);
 

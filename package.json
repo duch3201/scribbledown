@@ -1,10 +1,11 @@
 {
   "name":"scribbledown",
-  "version":"1.0.0",
+  "version":"1.1.0",
   "description": "A lightweight Markdown-powered blogging engine thingy",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "gen-template": "node gen-template.js"
   },
   "dependencies": {
     "compression": "^1.7.5",
