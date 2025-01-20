@@ -4,6 +4,8 @@ a lightweight Markdown-powered blogging engine thingy
 Built over two days as a fun side project, it’s not overly complicated under the hood but gets the job done! i won't lie i had a lot of fun building this
 it's pretty modular id say, the frontend is kinda just the index.html, index.css and app.js files, you can replace those for your own files as long as the html file will have the template strings
 
+you can checkout scribbledown here:
+https://scribbledown.chrisdev.pl/
 
 ## How does this work?
 
@@ -37,6 +39,19 @@ sudo docker run -d -p 3001:3001 \
   -v $(pwd)/scribbledown/blog.conf:/app/blog.conf \
   --name scribbledown scribbledown
 
+```
+
+or just pull the image and run
+```sh
+# create the blog.conf file (if you skip this docker will create a directory with the same name)
+touch $(pwd)/scribbledown/blog.conf
+
+sudo docker run -d -p 3001:3001 \
+  -v $(pwd)/scribbledown/templates:/app/templates \
+  -v $(pwd)/scribbledown/files:/app/files \
+  -v $(pwd)/scribbledown/images:/app/images \
+  -v $(pwd)/scribbledown/blog.conf:/app/blog.conf \
+  --name scribbledown shad0wm4n/scribbledown:v1.0.0
 ```
 
 As for changing something like the page's template it's also quite simple, the template uses three files
