@@ -26,6 +26,9 @@ git clone git@github.com:duch3201/scribbledown.git
 # Build the Docker image
 sudo docker build -t scribbledown .
 
+# create the blog.conf file (if you skip this docker will create a directory with the same name)
+touch $(pwd)/scribbledown/blog.conf
+
 # Run the Docker container
 sudo docker run -d -p 3001:3001 \
   -v $(pwd)/scribbledown/templates:/app/templates \
@@ -77,3 +80,15 @@ well if you have an idea just build it and submit a pr, i'll be happy to look at
 if you ran into any problems just submit an issue, i'll try my best to help you!
 
 btw if you create a template and you'd like to show it off, create an issue and i'll gladly put a link to it in this readme!
+
+## attribution
+
+to built scribbledown i used these libraries
+* compression
+* express
+* cssnano
+* terser
+* postcss
+
+and i used this theme for code highlighting:
+https://draculatheme.com/highlightjs

@@ -23,40 +23,40 @@ app.use((req, res, next) => {
 
 async function build() {
     console.log('Building files...');
-    const HTMLtemplate = await fs.readFileSync('./template/index.html', 'utf8');
+    const HTMLtemplate = await fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
     let fileContent;
     let checksums = {};
-    if (fs.existsSync('./checksums.json')) {
-        checksums = JSON.parse(fs.readFileSync('./checksums.json', 'utf8'));
+    if (fs.existsSync(path.join(__dirname, 'checksums.json'))) {
+        checksums = JSON.parse(fs.readFileSync(path.join(__dirname, 'checksums.json'), 'utf8'));
     }
 
     isAppModeDev = false;
-    if (fs.existsSync('./builtFiles')) {
+    if (fs.existsSync(path.join(__dirname, 'builtFiles'))) {
         console.log('found previous build, rebuilding');
-        fs.rmdirSync('./builtFiles', { recursive: true });
+        fs.rmdirSync(path.join(__dirname, 'builtFiles'), { recursive: true });
     }
-    fs.mkdirSync('./builtFiles', { recursive: true });
+    fs.mkdirSync(path.join(__dirname, 'builtFiles'), { recursive: true });
 
-    const files = fs.readdirSync('./files');
+    const files = fs.readdirSync(path.join(__dirname, 'files'));
     for (const file of files) {
         const fileName = file;
-        const stats = fs.statSync(`./files/${file}`);
+        const stats = fs.statSync(path.join(__dirname, 'files', file));
 
         if (fileName.endsWith('.md')) {
-            fileContent = await fs.readFileSync(`./files/${fileName}`, 'utf8');
+            fileContent = await fs.readFileSync(path.join(__dirname, 'files', fileName), 'utf8');
             const {content, frontmatter} = parseMarkdown(fileContent);
             const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter);
-            fs.writeFileSync(`./builtFiles/${fileName.replace('.md', '.html')}`, builtPage);
+            fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName.replace('.md', '.html')), builtPage);
             checksums[fileName] = generateChecksum(fileContent);
         } else if (stats.isDirectory()) {
-            fs.mkdirSync(`./builtFiles/${fileName}`, { recursive: true });
-            const subfiles = fs.readdirSync(`./files/${fileName}`);
+            fs.mkdirSync(path.join(__dirname, 'builtFiles', fileName), { recursive: true });
+            const subfiles = fs.readdirSync(path.join(__dirname, 'files', fileName));
             for (const subfile of subfiles) {
                 if (subfile.endsWith('.md')) {
-                    fileContent = await fs.readFileSync(`./files/${fileName}/${subfile}`, 'utf8');
+                    fileContent = await fs.readFileSync(path.join(__dirname, 'files', fileName, subfile), 'utf8');
                     const {content, frontmatter} = parseMarkdown(fileContent);
                     const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter);
-                    fs.writeFileSync(`./builtFiles/${fileName}/${subfile.replace('.md', '.html')}`, builtPage);
+                    fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName, subfile.replace('.md', '.html')), builtPage);
                     checksums[`${fileName}/${subfile}`] = generateChecksum(fileContent);
                 }
             }
@@ -64,8 +64,8 @@ async function build() {
     }
 
     // add checksums for template, css, and js files
-    const css = fs.readFileSync('./template/index.css', 'utf8');
-    const js = fs.readFileSync('./template/app.js', 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
+    const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
     const currentChecksum = generateChecksum(HTMLtemplate + css + js);
     checksums['template'] = currentChecksum;
 
@@ -74,7 +74,7 @@ async function build() {
 
     // Save checksums after all files are processed
     console.log('Saving checksums...');
-    fs.writeFileSync('./checksums.json', JSON.stringify(checksums, null, 4));
+    fs.writeFileSync(path.join(__dirname, 'checksums.json'), JSON.stringify(checksums, null, 4));
     console.log('Build complete!');
 }
 
@@ -99,45 +99,78 @@ async function init() {
 
         // read and parse config
         try {
-            blogConfig = fs.readFileSync('./blog.conf', 'utf8');
+            blogConfig = fs.readFileSync(path.join(__dirname, 'blog.conf'), 'utf8');
+            const configstat = fs.statSync(path.join(__dirname, 'blog.conf'));
+            if (configstat.size === 0) {
+                console.log("Config file is empty!");
+                console.error('writing the default to blog.conf');
+                blogConfig = {
+                    blogname: 'scribbledown blog',
+                    footerContent: '© {year} scribbledown.',
+                    dev: 'false'
+                };
+                fs.writeFileSync(path.join(__dirname, 'blog.conf'), JSON.stringify(blogConfig, null, 4));
+            }
+            blogConfig = fs.readFileSync(path.join(__dirname, 'blog.conf'), 'utf8');
+            // blogConfig = fs.readFileSync('./blog.conf', 'utf8');
             blogConfig = JSON.parse(blogConfig);
         } catch (error) {
-            console.error('Error reading blog.conf:', error);
-            console.error('Creating a new blog.conf file with default values');
-            blogConfig = {
-                blogname: 'My Blog',
-                footerContent: '© {year} My Blog. All rights reserved.',
-                mode: 'dev'
-            };
-            fs.writeFileSync('./blog.conf', JSON.stringify(blogConfig, null, 4));
+            console.error('---------\nError reading blog.conf:', error);
+            throw error;
+        }
 
+        const date = new Date();
+        const formattedDate = `${date.getDate()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+        // check if the files directory is empty
+        if (fs.existsSync(path.join(__dirname, 'files'))) {
+            const files = fs.readdirSync(path.join(__dirname, 'files'));
+            if (files.length === 0) {
+                console.log('Files directory is empty!\nAssuming first run!');
+                fs.writeFileSync(path.join(__dirname, 'files', 'index.md'), `---\ntitle: Welcome to scribbledown\ndate:${formattedDate}\n---\n# Welcome to scribbledown\n\nIf you're reading this. Welcome, everything is fine.`);
+                fs.writeFileSync(path.join(__dirname, 'files', 'welcome.md'), `---\ntitle: Welcome to scribbledown v2\ndate:${formattedDate}\n---\n# Welcome\n\n[shadowman](https://github.com/duch3201) here, welcome to scribbledown, thanks for checking it out.\n\nThis is a really cool blogging engine thingy and im so happy you decided to check it out, have fun creating templates or just writing your blog!`);
+            }
+        } else {
+            fs.mkdirSync(path.join(__dirname, 'files'), { recursive: true });
+            fs.writeFileSync(path.join(__dirname, 'files', 'index.md'), `---\ntitle: Welcome to scribbledown\ndate:${formattedDate}\n---\n# Welcome to scribbledown\n\nIf you're reading this. Welcome, everything is fine.`);
+            fs.writeFileSync(path.join(__dirname, 'files', 'welcome.md'), `---\ntitle: Welcome to scribbledown v2\ndate:${formattedDate}\n---\n# Welcome\n\n[shadowman](https://github.com/duch3201) here, welcome to scribbledown, thanks for checking it out.\n\nThis is a really cool blogging engine thingy and im so happy you decided to check it out, have fun creating templates or just writing your blog!`);
+        }
+
+        // check the template directory
+        if (fs.existsSync(path.join(__dirname, 'template'))) {
+            const templateFiles = fs.readdirSync(path.join(__dirname, 'template'));
+            if (templateFiles.length === 0) {
+                console.error("----------\nTemplate directory is empty!");
+                throw new Error('Template directory is empty!');
+            }
         }
 
         // see if the checksums.json file exists if it does check every file in the files directory
         try {
-            if (!fs.existsSync('./checksums.json')) {
-                fs.writeFileSync('./checksums.json', JSON.stringify({}));
+            if (!fs.existsSync(path.join(__dirname, 'checksums.json'))) {
+                fs.writeFileSync(path.join(__dirname, 'checksums.json'), JSON.stringify({}));
             }
 
-            let checksums = JSON.parse(fs.readFileSync('./checksums.json', 'utf8'));
+            let checksums = JSON.parse(fs.readFileSync(path.join(__dirname, 'checksums.json'), 'utf8'));
             rebuild = false; // Reset rebuild flag
 
             // Check if the files have changed
-            fs.readdirSync('./files').forEach(file => {
+            fs.readdirSync(path.join(__dirname, 'files')).forEach(file => {
                 const fileName = file;
-                const stats = fs.statSync(`./files/${file}`);
+                const stats = fs.statSync(path.join(__dirname, 'files', file));
 
                 if (fileName.endsWith('.md')) {
-                    const fileContent = fs.readFileSync(`./files/${fileName}`, 'utf8');
+                    // const fileContent = fs.readFileSync(`./files/${fileName}`, 'utf8');
+                    const fileContent = fs.readFileSync(path.join(__dirname, 'files', fileName), 'utf8');
                     const currentChecksum = generateChecksum(fileContent);
                     if (!checksums[fileName] || checksums[fileName] !== currentChecksum) {
                         console.log(`File ${fileName} has changed`);
                         rebuild = true;
                     }
                 } else if (stats.isDirectory()) {
-                    fs.readdirSync(`./files/${fileName}`).forEach(subfile => {
+                    fs.readdirSync(path.join(__dirname, 'files', fileName)).forEach(subfile => {
                         if (subfile.endsWith('.md')) {
-                            const fileContent = fs.readFileSync(`./files/${fileName}/${subfile}`, 'utf8');
+                            // const fileContent = fs.readFileSync(`./files/${fileName}/${subfile}`, 'utf8');
+                            const fileContent = fs.readFileSync(path.join(__dirname, 'files', subfile), 'utf8');
                             const currentChecksum = generateChecksum(fileContent);
                             const filePath = `${fileName}/${subfile}`;
                             if (!checksums[filePath] || checksums[filePath] !== currentChecksum) {
@@ -150,9 +183,9 @@ async function init() {
             });
 
             // check if the template, css or js files have changed
-            const HTMLtemplate = fs.readFileSync('./template/index.html', 'utf8');
-            const css = fs.readFileSync('./template/index.css', 'utf8');
-            const js = fs.readFileSync('./template/app.js', 'utf8');
+            const HTMLtemplate = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
+            const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
+            const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
             const currentChecksum = generateChecksum(HTMLtemplate + css + js);
             if (!checksums['template'] || checksums['template'] !== currentChecksum) {
                 console.log('Template, CSS, or JS files have changed');
@@ -167,7 +200,7 @@ async function init() {
             }
 
         } catch (error) {
-            console.error('Error reading checksums.json:', error);
+            console.error('----------\nError reading checksums.json:', error);
             rebuild = true;
         }
 
@@ -187,50 +220,34 @@ async function init() {
 }
 
 function processlinks(linksArray) {
-    fs.readdirSync('./files').forEach(file => {
-        // console.log(file)
+    fs.readdirSync(path.join(__dirname, 'files')).forEach(file => {
         const fileName = file;
-        // if (file.isFile) {
-        //     console.log("test")
-        // }
-        file = fs.statSync(`./files/${file}`);
-        // console.log(file)
+        const stats = fs.statSync(path.join(__dirname, 'files', file));
+        
         if (fileName.endsWith('.md')) {
             if (fileName === 'index.md') {
                 linksArray["/"].push('/');
             }
-            // console.log(file)
             let link = fileName.replace('.md', '');
             linksArray["/"].push(link);
-        } else {
-            // console.log("KURWAA")
-            if (file.isDirectory) {
-                // console.log(file)
-                // console.log("FILE is a directory")
-                // linksArray.push(file);
-                linksArray[fileName] = [];
-                fs.readdirSync(`./files/${fileName}`).forEach(subfile => {
-                    // linksArray.push(filename:[])
-                    if (subfile.endsWith('.md')) {
-                        let link = subfile.replace('.md', '');
-                        linksArray[fileName].push(fileName+"/"+link);
-                    }
-                })
-            }
+        } else if (stats.isDirectory()) {
+            linksArray[fileName] = [];
+            fs.readdirSync(path.join(__dirname, 'files', fileName)).forEach(subfile => {
+                if (subfile.endsWith('.md')) {
+                    let link = subfile.replace('.md', '');
+                    linksArray[fileName].push(fileName+"/"+link);
+                }
+            });
         }
     });
-
-    // console.log(linksArray)
 }
 
 async function yeettotemplate(template, content, frontmatter) {
-    // content = content.html
-
-    const hightlightjstheme = fs.readFileSync('./dracula.css', 'utf-8');
+    const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
     
     try {
-        const css = fs.readFileSync('./template/index.css', 'utf8');
-        const js = fs.readFileSync('./template/app.js', 'utf8');
+        const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
+        const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
 
         // Process CSS
         const cssResult = await postcss([cssnano])
@@ -243,7 +260,7 @@ async function yeettotemplate(template, content, frontmatter) {
 
         // return content;
     } catch (error) {
-        console.error('Error in yeettotemplate:', error);
+        console.error('----------\nError in yeettotemplate:', error);
         throw error;
     }
 
@@ -449,8 +466,8 @@ function parseMarkdown(markdown) {
 app.get('/', async (req, res) => {
     if (isAppModeDev) {
         try {
-            let template = fs.readFileSync('./template/index.html', 'utf8');
-            const contentContent = fs.readFileSync('./files/index.md', 'utf8');
+            let template = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
+            const contentContent = fs.readFileSync(path.join(__dirname, 'files', 'index.md'), 'utf8');
             let {content, frontmatter} = parseMarkdown(contentContent);
             
 
@@ -461,7 +478,7 @@ app.get('/', async (req, res) => {
         } 
     } else {
         console.log("lol")
-        res.sendFile(path.join(__dirname, 'builtFiles/index.html'));
+        res.sendFile(path.join(__dirname, 'builtFiles', 'index.html'));
     }
 
 });
@@ -475,7 +492,7 @@ app.get('/*', async (req, res) => {
     try {
         const filePath = path.join(__dirname, 'files', req.params[0] + '.md');
         console.log(filePath)
-        let template = fs.readFileSync('./template/index.html', 'utf8');
+        let template = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
         const contentContent = fs.readFileSync(filePath, 'utf8');
         let {content, frontmatter} = parseMarkdown(contentContent);
 
