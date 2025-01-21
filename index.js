@@ -6,6 +6,7 @@ const cssnano = require('cssnano');
 const Terser = require('terser');
 var compression = require('compression')
 var crypto = require('crypto');
+const pluginLoader = require('./pluginLoader');
 
 let blogConfig
 let isAppModeDev;
@@ -22,6 +23,13 @@ app.use((req, res, next) => {
 });
 
 async function build() {
+    try {
+        await pluginLoader.executeHook('beforeBuild');
+    } catch (error) {
+        console.error('----------');
+        console.error(error.message);
+        throw error;
+    }
     console.log('Building files...');
     const HTMLtemplate = await fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
     let fileContent;
@@ -43,21 +51,36 @@ async function build() {
         const stats = fs.statSync(path.join(__dirname, 'files', file));
 
         if (fileName.endsWith('.md')) {
+
+            console.log(`[build]: Building ${fileName}`);
+
             fileContent = await fs.readFileSync(path.join(__dirname, 'files', fileName), 'utf8');
-            const {content, frontmatter} = parseMarkdown(fileContent);
+            const {content, frontmatter} = await parseMarkdown(fileContent);
             const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter);
+
             fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName.replace('.md', '.html')), builtPage);
             checksums[fileName] = generateChecksum(fileContent);
+
+            console.log(`[build]: Building ${fileName} success`);
+
         } else if (stats.isDirectory()) {
+
             fs.mkdirSync(path.join(__dirname, 'builtFiles', fileName), { recursive: true });
             const subfiles = fs.readdirSync(path.join(__dirname, 'files', fileName));
+
             for (const subfile of subfiles) {
                 if (subfile.endsWith('.md')) {
+
+                    console.log(`[build]: Building ${fileName}/${subfile}`);
+
                     fileContent = await fs.readFileSync(path.join(__dirname, 'files', fileName, subfile), 'utf8');
-                    const {content, frontmatter} = parseMarkdown(fileContent);
+                    const {content, frontmatter} = await parseMarkdown(fileContent);
                     const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter);
+
                     fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName, subfile.replace('.md', '.html')), builtPage);
                     checksums[`${fileName}/${subfile}`] = generateChecksum(fileContent);
+
+                    console.log(`[build]: Building ${fileName} success`);
                 }
             }
         }
@@ -76,6 +99,7 @@ async function build() {
     console.log('Saving checksums...');
     fs.writeFileSync(path.join(__dirname, 'checksums.json'), JSON.stringify(checksums, null, 4));
     console.log('Build complete!');
+    await pluginLoader.executeHook('afterBuild');
 }
 
 
@@ -95,10 +119,13 @@ function calculateReadingTime(text) {
 }
 
 async function init() {
+    console.log("scribbledown init!");
+
     try {
 
         // read and parse config
         try {
+            console.log("Reading blog.conf");
             blogConfig = fs.readFileSync(path.join(__dirname, 'blog.conf'), 'utf8');
             const configstat = fs.statSync(path.join(__dirname, 'blog.conf'));
             if (configstat.size === 0) {
@@ -110,9 +137,8 @@ async function init() {
                     dev: 'false'
                 };
                 fs.writeFileSync(path.join(__dirname, 'blog.conf'), JSON.stringify(blogConfig, null, 4));
+                blogConfig = fs.readFileSync(path.join(__dirname, 'blog.conf'), 'utf8');
             }
-            blogConfig = fs.readFileSync(path.join(__dirname, 'blog.conf'), 'utf8');
-            // blogConfig = fs.readFileSync('./blog.conf', 'utf8');
             blogConfig = JSON.parse(blogConfig);
         } catch (error) {
             console.error('---------\nError reading blog.conf:', error);
@@ -129,13 +155,10 @@ async function init() {
                 fs.writeFileSync(path.join(__dirname, 'files', 'index.md'), `---\ntitle: Welcome to scribbledown\ndate:${formattedDate}\n---\n# Welcome to scribbledown\n\nIf you're reading this. Welcome, everything is fine.`);
                 fs.writeFileSync(path.join(__dirname, 'files', 'welcome.md'), `---\ntitle: Welcome to scribbledown v2\ndate:${formattedDate}\n---\n# Welcome\n\n[shadowman](https://github.com/duch3201) here, welcome to scribbledown, thanks for checking it out.\n\nThis is a really cool blogging engine thingy and im so happy you decided to check it out, have fun creating templates or just writing your blog!`);
             }
-        } else {
-            fs.mkdirSync(path.join(__dirname, 'files'), { recursive: true });
-            fs.writeFileSync(path.join(__dirname, 'files', 'index.md'), `---\ntitle: Welcome to scribbledown\ndate:${formattedDate}\n---\n# Welcome to scribbledown\n\nIf you're reading this. Welcome, everything is fine.`);
-            fs.writeFileSync(path.join(__dirname, 'files', 'welcome.md'), `---\ntitle: Welcome to scribbledown v2\ndate:${formattedDate}\n---\n# Welcome\n\n[shadowman](https://github.com/duch3201) here, welcome to scribbledown, thanks for checking it out.\n\nThis is a really cool blogging engine thingy and im so happy you decided to check it out, have fun creating templates or just writing your blog!`);
         }
 
         // check the template directory
+        console.log("Checking template directory");
         if (fs.existsSync(path.join(__dirname, 'template'))) {
             const templateFiles = fs.readdirSync(path.join(__dirname, 'template'));
             if (templateFiles.length === 0) {
@@ -145,6 +168,7 @@ async function init() {
         }
 
         // see if the checksums.json file exists if it does check every file in the files directory
+        console.log("Checking checksums.json");
         try {
             if (!fs.existsSync(path.join(__dirname, 'checksums.json'))) {
                 fs.writeFileSync(path.join(__dirname, 'checksums.json'), JSON.stringify({}));
@@ -170,7 +194,7 @@ async function init() {
                     fs.readdirSync(path.join(__dirname, 'files', fileName)).forEach(subfile => {
                         if (subfile.endsWith('.md')) {
                             // const fileContent = fs.readFileSync(`./files/${fileName}/${subfile}`, 'utf8');
-                            const fileContent = fs.readFileSync(path.join(__dirname, 'files', subfile), 'utf8');
+                            const fileContent = fs.readFileSync(path.join(__dirname, 'files', fileName, subfile), 'utf8');
                             const currentChecksum = generateChecksum(fileContent);
                             const filePath = `${fileName}/${subfile}`;
                             if (!checksums[filePath] || checksums[filePath] !== currentChecksum) {
@@ -183,6 +207,7 @@ async function init() {
             });
 
             // check if the template, css or js files have changed
+            console.log('Checking template, CSS, and JS files');
             const HTMLtemplate = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
             const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
             const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
@@ -193,6 +218,7 @@ async function init() {
             }
 
             // check if the config file has changed
+            console.log('Checking config file for changes');
             const configChecksum = generateChecksum(JSON.stringify(blogConfig));
             if (!checksums['config'] || checksums['config'] !== configChecksum) {
                 console.log('Config file has changed');
@@ -204,7 +230,28 @@ async function init() {
             rebuild = true;
         }
 
+        try {
+            console.log('Loading plugins...');
+            // Expose rebuild function to plugins
+            pluginLoader.setRebuildFunction(() => {
+                rebuild = true;
+                build();
+            });
+            await pluginLoader.loadPlugins();
+            
+            // Check if any plugin wants to trigger rebuild
+            const shouldRebuild = await pluginLoader.executeHook('invokeRebuild');
+            if (shouldRebuild) {
+                console.log('Rebuild requested by plugin');
+                rebuild = true;
+            }
+        } catch (error) {
+            console.error(`--------\nError loading plugins\n${error}`);
+            throw error;
+        }
+
         if (blogConfig.dev === 'true') {
+            console.warn("Running in dev mode!!");
             isAppModeDev = true;
         } else if (rebuild) {
             build();
@@ -243,8 +290,18 @@ function processlinks(linksArray) {
 }
 
 async function yeettotemplate(template, content, frontmatter) {
+    try {
+        const [newTemplate, newContent, newFrontmatter] = await pluginLoader.executeHook('beforeTemplate', template, content, frontmatter);
+        template = newTemplate;
+        content = newContent;
+        frontmatter = newFrontmatter;
+    } catch (error) {
+        console.error('----------');
+        console.error(error.message);
+        throw error;
+    }
     const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
-    
+
     try {
         const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
         const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
@@ -315,16 +372,9 @@ async function yeettotemplate(template, content, frontmatter) {
 
     if (Object.keys(processedFolders).length > 0) {
         Object.keys(processedFolders).forEach(folder => {
-            // console.log("KUWAR TEST  "+folder)
-            // console.error("KUWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n"+folder)
             processedLinks.push(`<h3>${folder}</h3><ol>${processedFolders[folder].join('')}</ol>`);
         });
     }
-
-    // console.log(processedFolders)
-    // console.log(((content.split("---")[1]).split("\n")[2]).split(":")[1].trim())
-
-    console.log(frontmatter)
 
     // content = content.replace("</head>", )
 
@@ -346,24 +396,29 @@ async function yeettotemplate(template, content, frontmatter) {
     template = template.replace('{BLOGNAMETITLE}', blogConfig.blogname);
     template = template.replace('{PAGETITLE}', frontmatter.title);
     template = template.replace('{BLOGNAME}', `<a href="/" id="blogname"><span>${blogConfig.blogname}</span></a>`);
-    // console.log(linksArray)
     template = template.replace('</body>', `</body><style>${hightlightjstheme}</style>`);
     template = template.replace('{FOOTERCONTENT}', (blogConfig.footerContent).replace("{year}", new Date().getFullYear()));
     template = template.replace('{PAGES}', `<ul>${processedLinks.join('')}</ul>`);
 
-    // console.log(template)
-
+    await pluginLoader.executeHook('afterTemplate');
     return template
 }
 
-function parseMarkdown(markdown) {
+async function parseMarkdown(markdown) {
+    try {
+        markdown = await pluginLoader.executeHook('beforeParse', markdown);
+    } catch (error) {
+        console.error('----------');
+        console.error(error.message);
+        throw error;
+    }
     // Input validation and frontmatter handling stays the same
     if (typeof markdown !== 'string') {
         throw new TypeError('Input must be a string');
     }
 
     let html = markdown;
-    const frontmatter = {};
+    let frontmatter = {};
     const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
     const frontmatterMatch = html.match(frontmatterRegex);
     
@@ -457,6 +512,14 @@ function parseMarkdown(markdown) {
     const readingTime = calculateReadingTime(html);
     frontmatter.readingTime = readingTime;
 
+    try {
+        html, frontmatter = await pluginLoader.executeHook('afterParse', html, frontmatter);
+    } catch (error) {
+        console.error('----------');
+        console.error(error.message);
+        throw error;
+    }
+
     return {
         content: html.trim(),
         frontmatter
@@ -468,7 +531,7 @@ app.get('/', async (req, res) => {
         try {
             let template = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
             const contentContent = fs.readFileSync(path.join(__dirname, 'files', 'index.md'), 'utf8');
-            let {content, frontmatter} = parseMarkdown(contentContent);
+            let {content, frontmatter} = await parseMarkdown(contentContent);
             
 
             res.send(await yeettotemplate(template, content, frontmatter));
@@ -477,7 +540,6 @@ app.get('/', async (req, res) => {
             res.status(500).send('Error reading the file.');
         } 
     } else {
-        console.log("lol")
         res.sendFile(path.join(__dirname, 'builtFiles', 'index.html'));
     }
 
@@ -491,12 +553,9 @@ app.get('/*', async (req, res) => {
     if (isAppModeDev) {
     try {
         const filePath = path.join(__dirname, 'files', req.params[0] + '.md');
-        console.log(filePath)
         let template = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
         const contentContent = fs.readFileSync(filePath, 'utf8');
-        let {content, frontmatter} = parseMarkdown(contentContent);
-
-        // console.log("LOOOOL:",content, frontmatter)
+        let {content, frontmatter} = await parseMarkdown(contentContent);
 
         res.send(await yeettotemplate(template, content, frontmatter));
     } catch (e) {
@@ -510,7 +569,6 @@ app.get('/*', async (req, res) => {
         // res.status(404).send('File not found.');
     }
     } else {
-        console.log("lol")
         res.sendFile(path.join(__dirname, 'builtFiles', req.params[0] + '.html'));
     }
 });
