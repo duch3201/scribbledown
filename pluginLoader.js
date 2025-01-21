@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const PluginInterface = require('./pluginInterface');
+const EventEmitter = require('events');
+const emitter = new EventEmitter();
 
 class PluginLoader {
     constructor() {
@@ -14,6 +15,7 @@ class PluginLoader {
             afterTemplate: [],
             invokeRebuild: []
         }
+        this.callableFunctions = new Map();
     }
 
     async loadPlugins() {
@@ -24,6 +26,7 @@ class PluginLoader {
             if (plugin.endsWith('.js')) {
                 const pluginPath = path.join(pluginDir, plugin);
                 const Plugin = require(pluginPath);
+                console.log(`[PluginLoader]: Loading plugin ${plugin}`);
                 const pluginInstance = new Plugin();
                 this.plugins.set(pluginInstance.name, pluginInstance);
 
@@ -47,6 +50,10 @@ class PluginLoader {
             return args.length === 1 ? args[0] : args;
         }
 
+        if (hookName === 'invokeRebuild') {
+            return await this.runBuild();
+        }
+
         let result = args;
         for (const plugin of this.plugins.values()) {
             for (const hook of this.hooks[hookName]) {
@@ -63,10 +70,33 @@ class PluginLoader {
         return args.length === 1 ? result[0] : result;
     }
 
-    setRebuildFunction(rebuildFn) {
-        this.rebuildFunction = rebuildFn;
+    async callPluginFunction(pluginName, functionName, args) {
+        const plugin = this.plugins.get(pluginName);
+        if (!plugin) {
+            throw new Error(`Plugin ${pluginName} not found`);
+        }
+
+        const func = plugin.callableFunctions.get(functionName);
+        if (!func) {
+            throw new Error(`Function ${functionName} not found in plugin ${pluginName}`);
+        }
+
+        return await func(args);
+    }
+
+
+    // todo fix this
+    async runBuild(file) {
+        console.log("test")
+        if (!file) {
+            console.log(`a plugin triggered a rebuild of all files`);
+            emitter.emit('rebuild')
+        } else {
+            console.log(`a plugin triggered a rebuild`)
+            emitter.emit('rebuild', file)
+        }
     }
 
 }
-
-module.exports = new PluginLoader();
+const pluginLoader = new PluginLoader()
+module.exports = {pluginLoader, emitter};

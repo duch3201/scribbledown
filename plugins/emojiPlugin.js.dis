@@ -1,4 +1,5 @@
 const PluginInterface = require('../pluginInterface');
+const {emitter} = require('../pluginLoader');
 
 class testPlugin extends PluginInterface {
     constructor() {
@@ -42,6 +43,13 @@ class testPlugin extends PluginInterface {
             }
             return markdown;    
         });
+
+        // this.registerHook('invokeRebuild', async () => {
+        //     setTimeout(() => {
+        //         console.log('[emojiPlugin]: Rebuilding the site!');
+        //         // emitter.emit('rebuild', "index.md");
+        //     }, 8000);
+        // });
     }
 }
 

@@ -11,6 +11,7 @@ class PluginInterface {
             afterTemplate: [],
             invokeRebuild: []
         }
+        this.callableFunctions = new Map();
     }
 
     registerHook(hookName, callback) {
@@ -28,6 +29,13 @@ class PluginInterface {
         } else {
             throw new Error(`Hook ${hookName} does not exist`);
         }
+    }
+
+    registerCallableFunction(functionName, callback) {
+        if (this.callableFunctions.has(functionName)) {
+            throw new Error(`Function ${functionName} already registered`);
+        }
+        this.callableFunctions.set(functionName, callback);
     }
 }
 
