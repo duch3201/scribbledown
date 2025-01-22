@@ -21,6 +21,7 @@ class commentsPlugin extends PluginInterface {
 
         this.registerHook('beforeTemplate', async (template, content, frontmatter) => {
             // console.log(template);
+            // console.log(frontmatter)
             console.log('[commentsPlugin]: Adding comments to the page');
             // try {
             //     newTemplate = template.replace('</main>', '</main><div id="comments"></div>');

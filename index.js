@@ -275,10 +275,12 @@ function processlinks(linksArray) {
             });
         }
     });
+    return linksArray
 }
 
 async function yeettotemplate(template, content, frontmatter) {
     try {
+        // console.log(frontmatter)
         const [newTemplate, newContent, newFrontmatter] = await pluginLoader.executeHook('beforeTemplate', template, content, frontmatter);
         template = newTemplate;
         content = newContent;
@@ -288,6 +290,9 @@ async function yeettotemplate(template, content, frontmatter) {
         console.error(error.message);
         throw error;
     }
+
+    // console.log(frontmatter[1])
+
     const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
 
     try {
@@ -300,8 +305,8 @@ async function yeettotemplate(template, content, frontmatter) {
         template = template.replace("</head>", `</head><style>${cssResult.css}</style></head>`);
 
         // Process JS
-        const jsResult = await Terser.minify(js);
-        template = template.replace("</body>", `</body><script>${jsResult.code}</script></body>`);
+        // const jsResult = await Terser.minify(js);
+        template = template.replace("</body>", `</body><script>${js}</script></body>`);
 
         // return content;
     } catch (error) {
@@ -312,62 +317,15 @@ async function yeettotemplate(template, content, frontmatter) {
     // get links
     let linksArray = {"/":[]};
     // console.log(fs.readdirSync('./files'))
-    processlinks(linksArray);
+    const processedLinks = processlinks(linksArray);
 
     // Replace 'index' with '/' in the array
     // linksArray = linksArray.map(link => link === 'index' ? '/' : link);
 
-    let processedFolders = {};
-    let processedLinks = [];
-    Object.keys(linksArray).forEach(key => {
-        linksArray[key].forEach(link => {
-            // console.log(link, key)
-            if (key === "/") {
-                if (link === 'index') {
-                    // processedLinks.push(`<li><a href="/">${link}</a></li>`);
-                    return;
-                }
-                if (link === '/') {
-                    // processedLinks.push(`<li><a href="/">/</a></li>`);
-                    return
-                } else {
-                    processedLinks.push(`<li><a href="/${link}">${link}</a></li>`);
-                }
-
-                
-            } else {
-                if (!processedFolders[key]) {
-                    processedFolders[key] = [];
-                    processedFolders[key].push(`<li><a href="/${link}">${link.split("/")[1]}</a></li>`);
-                } else {
-                    processedFolders[key].push(`<li><a href="/${link}">${link.split("/")[1]}</a></li>`);
-                }
-            }
-            // if (link === '/') {
-            //     processedLinks.push(`<li><a href="/">index</a></li>`);
-            // } else if (link includes("/")) {
-            //     let [folder, page] = link.split("/");
-            //     if (!processedLinks.includes(`<h3>${folder}</h3>`)) {
-            //         processedLinks.push(`<h3>${folder}</h3><ul><li><a href="/${link}">${page}</a></li></ul>`);
-            //     } else {
-            //         processedLinks.push(`<li><a href="/${link}">${page}</a></li>`);
-            //     }
-            // } else {
-            //     processedLinks.push(`<li><a href="/${link}">${link}</a></li>`);
-            // }
-        });
-    });
-
-    if (Object.keys(processedFolders).length > 0) {
-        Object.keys(processedFolders).forEach(folder => {
-            processedLinks.push(`<h3>${folder}</h3><ol>${processedFolders[folder].join('')}</ol>`);
-        });
-    }
-
     // content = content.replace("</head>", )
 
     content = content.replace("<h1>", "<div id='heading'><h1 id='contentHeading'>")
-    content = content.replace("</h1>", `</h1><div id="subtitle"><p class="subtitle-text">${frontmatter.date}</p><p class="reading-time subtitle-text">${frontmatter.readingTime} min read</p></div></div>`)
+    // content = content.replace("</h1>", `</h1><div id="subtitle"><p class="subtitle-text">${frontmatter.date}</p><p class="reading-time subtitle-text">${frontmatter.readingTime} min read</p></div></div>`)
     content = content.replace(/---[\s\S]*?---/, "")
     // Add validation checks
     if (!template.includes('{BLOGNAME}')) {
@@ -386,9 +344,19 @@ async function yeettotemplate(template, content, frontmatter) {
     template = template.replace('{BLOGNAME}', `<a href="/" id="blogname"><span>${blogConfig.blogname}</span></a>`);
     template = template.replace('</body>', `</body><style>${hightlightjstheme}</style>`);
     template = template.replace('{FOOTERCONTENT}', (blogConfig.footerContent).replace("{year}", new Date().getFullYear()));
-    template = template.replace('{PAGES}', `<ul>${processedLinks.join('')}</ul>`);
+    // template = template.replace('<script>', '<script>let linksArray = ' + JSON.stringify(processedLinks) + ';');
+    // template = template.replace('<script>', '<script>let frontmatter = ' + JSON.stringify(frontmatter) + ';');
 
-    await pluginLoader.executeHook('afterTemplate');
+    // console.log(template)
+
+    try {
+        const [newNewTemplate] = await pluginLoader.executeHook('afterTemplate', template, content, frontmatter, processedLinks);
+        template = newNewTemplate;
+    } catch (error) {
+        console.error('----------');
+        console.error(error.message);
+        throw error;
+    }
     return template
 }
 
@@ -501,7 +469,9 @@ async function parseMarkdown(markdown) {
     frontmatter.readingTime = readingTime;
 
     try {
-        html, frontmatter = await pluginLoader.executeHook('afterParse', html, frontmatter);
+        const [newHtml, newFrontmatter] = await pluginLoader.executeHook('afterParse', html, frontmatter);
+        html = newHtml;
+        frontmatter = newFrontmatter;
     } catch (error) {
         console.error('----------');
         console.error(error.message);
@@ -521,6 +491,7 @@ app.get('/', async (req, res) => {
             const contentContent = fs.readFileSync(path.join(__dirname, 'files', 'index.md'), 'utf8');
             let {content, frontmatter} = await parseMarkdown(contentContent);
             
+            console.log(frontmatter)
 
             res.send(await yeettotemplate(template, content, frontmatter));
         } catch (error) {
