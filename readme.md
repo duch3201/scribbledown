@@ -9,7 +9,8 @@ https://scribbledown.chrisdev.pl/
 
 ## How does this work?
 
-You write your blog's pages in markdown files, on start scribbledown goes over the files directory and builds them into html files.
+You write your blog's pages in markdown files, then upload them to the files/ directory and on start scribbledown will go over each file in there, 
+and convert them into html files. 
 The template's html, js and css gets merged together with your markdown to create the blog's pages, to not rebuild the pages if nothing's changed.
 scribbledown keeps track of every file in the files/ directory, the page template files and the config, so if either the markdown, template or config gets changed a rebuild will be triggered.
 

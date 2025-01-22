@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "gen-plugin": "node scripts/gen-plugin.js",
     "gen-template": "node gen-template.js"
   },
   "dependencies": {
