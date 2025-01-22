@@ -11,6 +11,8 @@ const pluginLoader = require('./pluginLoader');
 let blogConfig
 let isAppModeDev;
 let rebuild;
+let currentTheme;
+let currentThemeConfig;
 
 
 const app = express();
@@ -31,7 +33,7 @@ async function build() {
         throw error;
     }
     console.log('Building files...');
-    const HTMLtemplate = await fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
+    const HTMLtemplate = await fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
     let fileContent;
     let checksums = {};
     if (fs.existsSync(path.join(__dirname, 'checksums.json'))) {
@@ -87,8 +89,8 @@ async function build() {
     }
 
     // add checksums for template, css, and js files
-    const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
-    const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
+    const js = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'app.js'), 'utf8');
     const currentChecksum = generateChecksum(HTMLtemplate + css + js);
     checksums['template'] = currentChecksum;
 
@@ -140,9 +142,18 @@ async function init() {
                 blogConfig = fs.readFileSync(path.join(__dirname, 'blog.conf'), 'utf8');
             }
             blogConfig = JSON.parse(blogConfig);
+            currentTheme = blogConfig.currentTheme;
         } catch (error) {
             console.error('---------\nError reading blog.conf:', error);
             throw error;
+        }
+
+        try {
+            const themeConfig = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'config.json'), 'utf8');
+            currentThemeConfig = JSON.parse(themeConfig);
+        } catch (error) {
+            console.warn('---------\nError reading theme config:\n', error);
+            console.warn(`will not be able to display theme's name and author\n----------`)
         }
 
         const date = new Date();
@@ -296,8 +307,8 @@ async function yeettotemplate(template, content, frontmatter) {
     const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
 
     try {
-        const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
-        const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
+        const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
+        const js = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'app.js'), 'utf8');
 
         // Process CSS
         const cssResult = await postcss([cssnano])
@@ -487,7 +498,7 @@ async function parseMarkdown(markdown) {
 app.get('/', async (req, res) => {
     if (isAppModeDev) {
         try {
-            let template = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
+            let template = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
             const contentContent = fs.readFileSync(path.join(__dirname, 'files', 'index.md'), 'utf8');
             let {content, frontmatter} = await parseMarkdown(contentContent);
             
