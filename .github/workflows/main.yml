@@ -36,4 +36,4 @@ jobs:
         run: docker build -t shad0wm4n/scribbledown:${{ env.IMAGE_VERSION }} .
 
       - name: Push Docker Image
-        run: docker push your-dockerhub-username/scribbledown:${{ env.IMAGE_VERSION }}
+        run: docker push shad0wm4n/scribbledown:${{ env.IMAGE_VERSION }}
