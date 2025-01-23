@@ -176,7 +176,8 @@ async function init() {
                 blogConfig = {
                     blogname: 'scribbledown blog',
                     footerContent: '© {year} scribbledown.',
-                    dev: 'false'
+                    dev: 'false',
+                    currentTheme: 'default'
                 };
                 fs.writeFileSync(path.join(__dirname, 'blog.conf'), JSON.stringify(blogConfig, null, 4));
                 blogConfig = fs.readFileSync(path.join(__dirname, 'blog.conf'), 'utf8');
