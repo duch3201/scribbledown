@@ -1,44 +1,71 @@
 const PluginInterface = require('../pluginInterface');
 const {emitter} = require('../pluginLoader');
 
+function sanitize(string) {
+  const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#x27;',
+      "/": '&#x2F;',
+  };
+  const reg = /[&<>"'/]/ig;
+  return string.replace(reg, (match)=>(map[match]));
+}
+
 class commentsPlugin extends PluginInterface {
     constructor() {
         super('commentsPlugin', '0.1.0')
-        var comments = [
-            {
-                name: 'John Doe',
-                comment: 'This is a great article!',
-                date: '2021-01-01'
-            },
-            {
-                name: 'Jane Doe',
-                comment: 'I have a question. Can you help me?',
-                date: '2021-01-02'
-            }
-        ];
+        // var comments = [
+        //     {
+        //         name: 'John Doe',
+        //         comment: 'This is a great article!',
+        //         date: '2021-01-01'
+        //     },
+        //     {
+        //         name: 'Jane Doe',
+        //         comment: 'I have a question. Can you help me?',
+        //         date: '2021-01-02'
+        //     }
+        // ];
+        var comments = {
+            ["/dev testing stuff/lol"]: [
+                {
+                    name: 'John Doe',
+                    comment: 'This is a great article!',
+                    date: '2021-01-01'
+                },
+                {
+                    name: 'Jane Doe',
+                    comment: 'I have a question. Can you help me?',
+                    date: '2021-01-02'
+                }
+            ]
+        }
         const commentsArray = []
         let newTemplate
 
         this.registerHook('beforeTemplate', async (template, content, frontmatter) => {
-            // console.log(template);
-            // console.log(frontmatter)
+            console.log(comments)
             console.log('[commentsPlugin]: Adding comments to the page');
-            // try {
-            //     newTemplate = template.replace('</main>', '</main><div id="comments"></div>');
-            // } catch (error) {
-            //     console.error('Error adding comments:', error);
-            //     return newTemplate;
-            // }
+            Object.keys(comments).forEach(page => {
+                comments[page].forEach(comment => {
+                    if (page ) {
 
-            for (const comment of comments) {
-                commentsArray.push(`
-                    <div class="comment">
-                        <p>${comment.comment}</p>
-                        <p>By ${comment.name} on ${new Date(comment.date).toDateString()}</p>
-                    </div>
-                `);
-            }
+                    }
+                    commentsArray.push(`
+                        <div class="comment">
+                            <p>${comment.comment}</p>
+                            <p>By ${comment.name} on ${new Date(comment.date).toDateString()}</p>
+                        </div>
+                    `);
+                })
+            })
 
+            // console.log('\n\n\n[commentsPlugin]: \n', template)
+
+            // const modifiedTemplate = template
             const modifiedTemplate = template.replace('</main>', `</main><input type="text" id="commentInput"><button id="commentBtn">submit</button></input><div id="comments">${commentsArray}</div>`);
 
             // console.log(template.replace('</main>', `</main><div id="comments">${commentsArray}</div>`))
@@ -51,12 +78,27 @@ class commentsPlugin extends PluginInterface {
         });
 
         this.registerCallableFunction('addComment', async (args) => {
-            const {name, comment} = args;
-            comments.push({
+            let {name, comment, page} = args;
+            if (!comments[page]) {
+                comments[page] = [];
+            }
+            name = sanitize(name);
+            comment = sanitize(comment);
+            console.log({
+                name,
+                comment,
+                date: new Date().toISOString()
+            })
+            comments[page].push({
                 name,
                 comment,
                 date: new Date().toISOString()
             });
+            // comments.push({
+            //     name,
+            //     comment,
+            //     date: new Date().toISOString()
+            // });
             return comments;
         });
 

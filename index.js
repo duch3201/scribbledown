@@ -6,7 +6,7 @@ const cssnano = require('cssnano');
 const Terser = require('terser');
 var compression = require('compression')
 var crypto = require('crypto');
-const pluginLoader = require('./pluginLoader');
+const {pluginLoader, emitter} = require('./pluginLoader');
 
 let blogConfig
 let isAppModeDev;
@@ -24,7 +24,41 @@ app.use((req, res, next) => {
     next();
 });
 
-async function build() {
+async function build(fileName) {
+    if (fileName) {
+        let fileToBuild;
+        try {
+            console.log(`Rebuilding ${fileName}`);
+            if (fileName.split('/').length > 1) {
+                fileToBuild = fs.readFileSync(path.join(__dirname, 'files', fileName[0], fileName[1]), 'utf8');
+            } else {
+                fileToBuild = fs.readFileSync(path.join(__dirname, 'files', fileName), 'utf8');
+            }
+
+            const {content, frontmatter} = await parseMarkdown(fileToBuild);
+            const HTMLtemplate = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
+            const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter);
+
+            if (fileName.split('/').length > 1) {
+                fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName[0], fileName[1].replace('.md', '.html')), builtPage);
+            } else {
+                fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName.replace('.md', '.html')), builtPage);
+            }
+
+            const checksums = JSON.parse(fs.readFileSync(path.join(__dirname, 'checksums.json'), 'utf8'));
+            checksums[fileName] = generateChecksum(fileToBuild);
+            fs.writeFileSync(path.join(__dirname, 'checksums.json'), JSON.stringify(checksums, null, 4));
+
+            console.log(`Rebuilding ${fileName} success`);
+            return;
+
+        } catch (error) {
+            console.error('----------');
+            console.error(error.message);
+            throw error;
+        }
+
+    }
     try {
         await pluginLoader.executeHook('beforeBuild');
     } catch (error) {
@@ -101,7 +135,13 @@ async function build() {
     console.log('Saving checksums...');
     fs.writeFileSync(path.join(__dirname, 'checksums.json'), JSON.stringify(checksums, null, 4));
     console.log('Build complete!');
-    await pluginLoader.executeHook('afterBuild');
+    try {
+        await pluginLoader.executeHook('afterBuild');   
+    } catch (error) {
+        console.error('----------');
+        console.error(error.message);
+        throw error;
+    }
 }
 
 
@@ -244,6 +284,12 @@ async function init() {
         try {
             console.log('Loading plugins...');
             await pluginLoader.loadPlugins();
+
+            const shouldRebuild = await pluginLoader.executeHook('invokeRebuild');
+            if (shouldRebuild) {
+                console.log('Rebuild requested by plugin');
+                rebuild = true;
+            }
         } catch (error) {
             console.error(`--------\nError loading plugins\n${error}`);
             throw error;
@@ -296,6 +342,7 @@ async function yeettotemplate(template, content, frontmatter) {
         template = newTemplate;
         content = newContent;
         frontmatter = newFrontmatter;
+        // console.log('\n\n[yettotemplate (beforeTemplate Hook)]: \n',newTemplate)
     } catch (error) {
         console.error('----------');
         console.error(error.message);
@@ -305,24 +352,26 @@ async function yeettotemplate(template, content, frontmatter) {
     // console.log(frontmatter[1])
 
     const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
+    const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
+    const js = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'app.js'), 'utf8');
 
-    try {
-        const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
-        const js = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'app.js'), 'utf8');
+    if (!isAppModeDev) {
+        try {
+            // Process CSS
+            const cssResult = await postcss([cssnano])
+                .process(css, { from: undefined });
+            template = template.replace("</head>", `</head><style>${cssResult.css}</style></head>`);
 
-        // Process CSS
-        const cssResult = await postcss([cssnano])
-            .process(css, { from: undefined });
-        template = template.replace("</head>", `</head><style>${cssResult.css}</style></head>`);
-
-        // Process JS
-        // const jsResult = await Terser.minify(js);
+            // Process JS
+            const jsResult = await Terser.minify(js);
+            template = template.replace("</body>", `</body><script>${jsResult.code}</script></body>`);
+        } catch (error) {
+            console.error('----------\nError in yeettotemplate:', error);
+            throw error;
+        }
+    } else {
+        template = template.replace("</head>", `</head><style>${css}</style></head>`);
         template = template.replace("</body>", `</body><script>${js}</script></body>`);
-
-        // return content;
-    } catch (error) {
-        console.error('----------\nError in yeettotemplate:', error);
-        throw error;
     }
 
     // get links
@@ -358,11 +407,12 @@ async function yeettotemplate(template, content, frontmatter) {
     // template = template.replace('<script>', '<script>let linksArray = ' + JSON.stringify(processedLinks) + ';');
     // template = template.replace('<script>', '<script>let frontmatter = ' + JSON.stringify(frontmatter) + ';');
 
-    // console.log(template)
+    // console.log("[yettotemplate]: ",template)
 
     try {
         const [newNewTemplate] = await pluginLoader.executeHook('afterTemplate', template, content, frontmatter, processedLinks);
         template = newNewTemplate;
+        // console.log("\n\n[yettotemplate (afterTemplate Hook)]: ",newNewTemplate)
     } catch (error) {
         console.error('----------');
         console.error(error.message);
@@ -495,6 +545,25 @@ async function parseMarkdown(markdown) {
     };
 }
 
+emitter.on('rebuild', data => {
+    console.log(data);
+    build(data);
+});
+
+app.post('/plugin/:pluginName/:functionName', async (req, res) => {
+    try {
+        const result = await pluginLoader.callPluginFunction(
+            req.params.pluginName,
+            req.params.functionName,
+            req.body
+        );
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(400).json({ success: false, error: error.message });
+    }
+});
+
+
 app.get('/', async (req, res) => {
     if (isAppModeDev) {
         try {
@@ -523,7 +592,7 @@ app.get('/*', async (req, res) => {
     if (isAppModeDev) {
     try {
         const filePath = path.join(__dirname, 'files', req.params[0] + '.md');
-        let template = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
+        let template = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
         const contentContent = fs.readFileSync(filePath, 'utf8');
         let {content, frontmatter} = await parseMarkdown(contentContent);
 

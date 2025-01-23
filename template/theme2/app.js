@@ -20,6 +20,35 @@ document.addEventListener('DOMContentLoaded', function() {
     ul.innerHTML = '';
     ul.appendChild(firstDiv);
     ul.appendChild(secondDiv);
+
+    // code for the comment plugin
+    commentBtn.addEventListener('click', async () => {
+        // const name = document.getElementById("name").value;
+        const name = "user"
+        const comment = document.getElementById("commentInput").value;
+        let page = window.location.pathname
+        page = decodeURIComponent(page) 
+        const response = await callPluginFunction('commentsPlugin', 'addComment', {name, comment, page});
+        console.log(response);
+        // document.getElementById("name").value = '';
+        document.getElementById("commentInput").value = '';
+        // await callPluginFunction('commentsPlugin', 'rebuildPage', {name: ''});
+        this.getElementById('comments').innerHTML = '';
+        let comments = await callPluginFunction('commentsPlugin', 'getComments');
+        comments = comments.data
+        console.log(comments);
+        Object.keys(comments).forEach(page => {
+            console.log(comments[page]);
+            comments[page].forEach(comment => {
+                document.getElementById('comments').innerHTML += `
+                    <div class="comment">
+                        <p>${comment.comment}</p>
+                        <p>By ${comment.name} on ${new Date(comment.date).toDateString()}</p>
+                    </div>
+                `;
+            });
+        })
+    });
 });
 
 var sidebarClosed = true
@@ -33,4 +62,20 @@ function showSidebar() {
         sidebarClosed = true;
     }
     // document.getElementById("sidebar").style.display = "block";
+}
+
+async function callPluginFunction(pluginName, functionName, args = {}) {
+    try {
+        const response = await fetch(`/plugin/${pluginName}/${functionName}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(args)
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Plugin function call failed:', error);
+        throw error;
+    }
 }

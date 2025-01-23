@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "gen-plugin": "node scripts/gen-plugin.js",
-    "gen-template": "node gen-template.js"
+    "gen-template": "node scripts/gen-template.js"
   },
   "dependencies": {
     "compression": "^1.7.5",

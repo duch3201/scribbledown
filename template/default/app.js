@@ -33,19 +33,6 @@ function showSidebar() {
 // })
 
 
-// code for the comment plugin
-
-// commentBtn.addEventListener('click', async () => {
-//     // const name = document.getElementById("name").value;
-//     const name = "user"
-//     const comment = document.getElementById("commentInput").value;
-//     const response = await callPluginFunction('commentsPlugin', 'addComment', {name, comment});
-//     console.log(response);
-//     // document.getElementById("name").value = '';
-//     document.getElementById("commentInput").value = '';
-//     await callPluginFunction('commentsPlugin', 'rebuildPage', {name: ''});
-// });
-
 async function callPluginFunction(pluginName, functionName, args = {}) {
     try {
         const response = await fetch(`/plugin/${pluginName}/${functionName}`, {

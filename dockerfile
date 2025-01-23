@@ -10,6 +10,7 @@ RUN npm install --production
 
 # Copy application files
 COPY /template ./template
+COPY /plugins ./plugins
 COPY dracula.css ./
 COPY blog.conf ./
 COPY index.js ./

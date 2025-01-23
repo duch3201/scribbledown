@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const PluginInterface = require('./pluginInterface');
+const EventEmitter = require('events');
+const emitter = new EventEmitter();
 
 class PluginLoader {
     constructor() {
@@ -11,18 +12,20 @@ class PluginLoader {
             beforeParse: [],
             afterParse: [],
             beforeTemplate: [],
-            afterTemplate: []
+            afterTemplate: [],
+            invokeRebuild: []
         }
+        this.callableFunctions = new Map();
     }
 
     async loadPlugins() {
         const pluginDir = path.join(__dirname, 'plugins');
         const plugins = fs.readdirSync(pluginDir);
-
         for (const plugin of plugins) {
             if (plugin.endsWith('.js')) {
                 const pluginPath = path.join(pluginDir, plugin);
                 const Plugin = require(pluginPath);
+                console.log(`[PluginLoader]: Loading plugin ${plugin}`);
                 const pluginInstance = new Plugin();
                 this.plugins.set(pluginInstance.name, pluginInstance);
 
@@ -32,36 +35,71 @@ class PluginLoader {
                         console.log(`[PluginLoader]: Registered ${pluginInstance.name} for ${hookName}`);
                     }
                 });
-
             }
         }
     }
-
     async executeHook(hookName, ...args) {
         if (!this.hooks[hookName]) {
             throw new Error(`Hook ${hookName} does not exist`);
         }
-
         if (this.hooks[hookName].length === 0) {
             return args.length === 1 ? args[0] : args;
         }
 
-        let result = args;
-        for (const plugin of this.plugins.values()) {
-            for (const hook of this.hooks[hookName]) {
+        if (hookName === 'invokeRebuild') {
+            return await this.runBuild();
+        }
+
+        let result = [...args];
+        // Execute hooks sequentially in a deterministic order
+        // We do this to avoid weird bugs from two plugins running at the same time
+        const sortedPlugins = Array.from(this.plugins.values())
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        for (const plugin of sortedPlugins) {
+            const pluginHooks = plugin.hooks[hookName] || [];
+            for (const hook of pluginHooks) {
                 try {
                     const hookResult = await hook(...result);
                     if (hookResult !== undefined) {
                         result = Array.isArray(hookResult) ? hookResult : [hookResult];
                     }
                 } catch (error) {
-                    throw new Error(`Plugin "${error.pluginName}" failed in hook "${hookName}": ${error.message}`);
+                    console.error(`Error in plugin "${plugin.name}" for hook "${hookName}":`, error);
+                    throw error;
                 }
             }
         }
         return args.length === 1 ? result[0] : result;
     }
 
-}
+    async callPluginFunction(pluginName, functionName, args) {
+        const plugin = this.plugins.get(pluginName);
+        if (!plugin) {
+            throw new Error(`Plugin ${pluginName} not found`);
+        }
 
-module.exports = new PluginLoader();
+        const func = plugin.callableFunctions.get(functionName);
+        if (!func) {
+            throw new Error(`Function ${functionName} not found in plugin ${pluginName}`);
+        }
+
+        return await func(args);
+    }
+
+
+    // todo fix this
+    async runBuild(file) {
+        console.log("test")
+        if (!file) {
+            console.log(`a plugin triggered a rebuild of all files`);
+            emitter.emit('rebuild')
+        } else {
+            console.log(`a plugin triggered a rebuild`)
+            emitter.emit('rebuild', file)
+        }
+    }
+
+}
+const pluginLoader = new PluginLoader()
+module.exports = {pluginLoader, emitter};
