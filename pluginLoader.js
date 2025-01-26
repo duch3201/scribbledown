@@ -21,6 +21,7 @@ class PluginLoader {
     async loadPlugins() {
         const pluginDir = path.join(__dirname, 'plugins');
         const plugins = fs.readdirSync(pluginDir);
+
         for (const plugin of plugins) {
             if (plugin.endsWith('.js')) {
                 const pluginPath = path.join(pluginDir, plugin);
@@ -35,13 +36,16 @@ class PluginLoader {
                         console.log(`[PluginLoader]: Registered ${pluginInstance.name} for ${hookName}`);
                     }
                 });
+
             }
         }
     }
+
     async executeHook(hookName, ...args) {
         if (!this.hooks[hookName]) {
             throw new Error(`Hook ${hookName} does not exist`);
         }
+
         if (this.hooks[hookName].length === 0) {
             return args.length === 1 ? args[0] : args;
         }
@@ -50,24 +54,15 @@ class PluginLoader {
             return await this.runBuild();
         }
 
-        let result = [...args];
-        // Execute hooks sequentially in a deterministic order
-        // We do this to avoid weird bugs from two plugins running at the same time
-        const sortedPlugins = Array.from(this.plugins.values())
-            .sort((a, b) => a.name.localeCompare(b.name));
-
-        for (const plugin of sortedPlugins) {
-            const pluginHooks = plugin.hooks[hookName] || [];
-            for (const hook of pluginHooks) {
-                try {
-                    const hookResult = await hook(...result);
-                    if (hookResult !== undefined) {
-                        result = Array.isArray(hookResult) ? hookResult : [hookResult];
-                    }
-                } catch (error) {
-                    console.error(`Error in plugin "${plugin.name}" for hook "${hookName}":`, error);
-                    throw error;
+        let result = args;
+        for (const hook of this.hooks[hookName]) {
+            try {
+                const hookResult = await hook(...result);
+                if (hookResult !== undefined) {
+                    result = Array.isArray(hookResult) ? hookResult : [hookResult];
                 }
+            } catch (error) {
+                throw new Error(`Plugin failed in hook "${hookName}": ${error.message}`);
             }
         }
         return args.length === 1 ? result[0] : result;

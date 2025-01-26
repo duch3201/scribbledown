@@ -13,6 +13,7 @@ let isAppModeDev;
 let rebuild;
 let currentTheme;
 let currentThemeConfig;
+let processedLinks
 
 
 const app = express();
@@ -25,6 +26,11 @@ app.use((req, res, next) => {
 });
 
 async function build(fileName) {
+
+    // get links
+    let linksArray = {"/":[]};
+    processedLinks = processlinks(linksArray);
+
     if (fileName) {
         let fileToBuild;
         try {
@@ -37,7 +43,7 @@ async function build(fileName) {
 
             const {content, frontmatter} = await parseMarkdown(fileToBuild);
             const HTMLtemplate = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
-            const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter);
+            const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter, processedLinks);
 
             if (fileName.split('/').length > 1) {
                 fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName[0], fileName[1].replace('.md', '.html')), builtPage);
@@ -92,7 +98,7 @@ async function build(fileName) {
 
             fileContent = await fs.readFileSync(path.join(__dirname, 'files', fileName), 'utf8');
             const {content, frontmatter} = await parseMarkdown(fileContent);
-            const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter);
+            const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter, processedLinks);
 
             fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName.replace('.md', '.html')), builtPage);
             checksums[fileName] = generateChecksum(fileContent);
@@ -111,7 +117,7 @@ async function build(fileName) {
 
                     fileContent = await fs.readFileSync(path.join(__dirname, 'files', fileName, subfile), 'utf8');
                     const {content, frontmatter} = await parseMarkdown(fileContent);
-                    const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter);
+                    const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter, processedLinks);
 
                     fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName, subfile.replace('.md', '.html')), builtPage);
                     checksums[`${fileName}/${subfile}`] = generateChecksum(fileContent);
@@ -142,6 +148,9 @@ async function build(fileName) {
         console.error(error.message);
         throw error;
     }
+
+
+
 }
 
 
@@ -336,7 +345,7 @@ function processlinks(linksArray) {
     return linksArray
 }
 
-async function yeettotemplate(template, content, frontmatter) {
+async function yeettotemplate(template, content, frontmatter, processedLinks) {
     try {
         // console.log(frontmatter)
         const [newTemplate, newContent, newFrontmatter] = await pluginLoader.executeHook('beforeTemplate', template, content, frontmatter);
@@ -350,7 +359,7 @@ async function yeettotemplate(template, content, frontmatter) {
         throw error;
     }
 
-    // console.log(frontmatter[1])
+    console.log("lollll  "+processedLinks)
 
     const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
     const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
@@ -375,17 +384,14 @@ async function yeettotemplate(template, content, frontmatter) {
         template = template.replace("</body>", `</body><script>${js}</script></body>`);
     }
 
-    // get links
-    let linksArray = {"/":[]};
-    // console.log(fs.readdirSync('./files'))
-    const processedLinks = processlinks(linksArray);
+
 
     // Replace 'index' with '/' in the array
     // linksArray = linksArray.map(link => link === 'index' ? '/' : link);
 
     // content = content.replace("</head>", )
 
-    content = content.replace("<h1>", "<div id='heading'><h1 id='contentHeading'>")
+    // content = content.replace("<h1>", "<div id='heading'><h1 id='contentHeading'>")
     // content = content.replace("</h1>", `</h1><div id="subtitle"><p class="subtitle-text">${frontmatter.date}</p><p class="reading-time subtitle-text">${frontmatter.readingTime} min read</p></div></div>`)
     content = content.replace(/---[\s\S]*?---/, "")
     // Add validation checks
@@ -411,7 +417,9 @@ async function yeettotemplate(template, content, frontmatter) {
     // console.log("[yettotemplate]: ",template)
 
     try {
-        const [newNewTemplate] = await pluginLoader.executeHook('afterTemplate', template, content, frontmatter, processedLinks);
+        // console.log(processedLinks)
+        const processedLinksl = processedLinks;
+        const [newNewTemplate] = await pluginLoader.executeHook('afterTemplate', template, content, frontmatter, processedLinksl);
         template = newNewTemplate;
         // console.log("\n\n[yettotemplate (afterTemplate Hook)]: ",newNewTemplate)
     } catch (error) {
@@ -430,7 +438,7 @@ async function parseMarkdown(markdown) {
         console.error(error.message);
         throw error;
     }
-    // Input validation and frontmatter handling stays the same
+
     if (typeof markdown !== 'string') {
         throw new TypeError('Input must be a string');
     }
@@ -451,11 +459,10 @@ async function parseMarkdown(markdown) {
         html = html.slice(frontmatterMatch[0].length).trim();
     }
 
-    // First, protect code blocks with unique tokens
+    // Protect code blocks
     const codeBlocks = new Map();
     let codeBlockId = 0;
 
-    // Handle fenced code blocks with language specification
     html = html.replace(/```([^\n]*)\n([\s\S]*?)```/g, (match, lang, code) => {
         const token = `%%CODEBLOCK${codeBlockId}%%`;
         codeBlocks.set(token, {
@@ -477,62 +484,116 @@ async function parseMarkdown(markdown) {
         return token;
     });
 
-    // Convert headers (h1-h6)
-    for (let i = 6; i >= 1; i--) {
-        const pattern = new RegExp(`^${('#').repeat(i)}\\s+(.+)$`, 'gm');
-        html = html.replace(pattern, `<h${i}>$1</h${i}>`);
+    // Improved list and paragraph processing
+    let processedLines = [];
+    let isInList = false;
+    let currentListType = null;
+
+    html.split('\n').forEach(line => {
+        // Unordered list item detection
+        const unorderedListMatch = line.match(/^[\*\-\+]\s+(.+)/);
+        // Ordered list item detection
+        const orderedListMatch = line.match(/^\d+\.\s+(.+)/);
+        // Blockquote detection
+        const blockquoteMatch = line.match(/^>\s*(.*)/);
+        // Heading detection
+        const headingMatch = line.match(/^(#{1,6})\s+(.+)/);
+        // Horizontal rule detection
+        const hrMatch = line.match(/^(?:[\t ]*(?:-{3,}|\*{3,}|_{3,})[\t ]*?)$/);
+
+        if (unorderedListMatch) {
+            if (!isInList || currentListType !== 'ul') {
+                // Start of a new unordered list
+                processedLines.push('<ul>');
+                isInList = true;
+                currentListType = 'ul';
+            }
+            processedLines.push(`<li>${unorderedListMatch[1]}</li>`);
+        } else if (orderedListMatch) {
+            if (!isInList || currentListType !== 'ol') {
+                // Start of a new ordered list
+                processedLines.push('<ol>');
+                isInList = true;
+                currentListType = 'ol';
+            }
+            processedLines.push(`<li>${orderedListMatch[1]}</li>`);
+        } else if (blockquoteMatch) {
+            // Close any open list
+            if (isInList) {
+                processedLines.push(currentListType === 'ul' ? '</ul>' : '</ol>');
+                isInList = false;
+                currentListType = null;
+            }
+            processedLines.push(`<blockquote>${blockquoteMatch[1]}</blockquote>`);
+        } else if (headingMatch) {
+            // Close any open list
+            if (isInList) {
+                processedLines.push(currentListType === 'ul' ? '</ul>' : '</ol>');
+                isInList = false;
+                currentListType = null;
+            }
+            // Convert heading based on number of #
+            const headingLevel = headingMatch[1].length;
+            processedLines.push(`<h${headingLevel}>${headingMatch[2]}</h${headingLevel}>`);
+        } else if (hrMatch) {
+            // Close any open list
+            if (isInList) {
+                processedLines.push(currentListType === 'ul' ? '</ul>' : '</ol>');
+                isInList = false;
+                currentListType = null;
+            }
+            processedLines.push('<hr>');
+        } else {
+            // Not a list item
+            if (isInList) {
+                // Close the previous list
+                processedLines.push(currentListType === 'ul' ? '</ul>' : '</ol>');
+                isInList = false;
+                currentListType = null;
+            }
+
+            // Trim the line and add non-empty lines as paragraphs
+            const trimmedLine = line.trim();
+            if (trimmedLine) {
+                processedLines.push(`<p>${trimmedLine}</p>`);
+            }
+        }
+    });
+
+    // Close any open list at the end
+    if (isInList) {
+        processedLines.push(currentListType === 'ul' ? '</ul>' : '</ol>');
     }
 
-    // Convert other Markdown elements
-    html = html.replace(/(\*\*|__)(.*?)\1/g, '<strong>$2</strong>');
-    html = html.replace(/(\*|_)(.*?)\1/g, '<em>$2</em>');
-    html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
-    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 
+    // Join the processed lines
+    let processedContent = processedLines.join('\n');
+
+    // Additional Markdown conversions
+    processedContent = processedContent.replace(/(\*\*|__)(.*?)\1/g, '<strong>$2</strong>');
+    processedContent = processedContent.replace(/(\*|_)(.*?)\1/g, '<em>$2</em>');
+    processedContent = processedContent.replace(/~~(.*?)~~/g, '<del>$1</del>');
+    processedContent = processedContent.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 
         (match, alt, url) => `<img src="${url}" alt="${alt}">`);
-    html = html.replace(/\[([^\]]+)\]\(([^)"]+)(?:\s+"([^"]+)")?\)/g, 
+    processedContent = processedContent.replace(/\[([^\]]+)\]\(([^)"]+)(?:\s+"([^"]+)")?\)/g, 
         (match, text, url, title) => `<a href="${url}"${title ? ` title="${title}"` : ''}>${text}</a>`);
 
-
-    // Convert lists
-    html = html.replace(/^[\*\-\+]\s+(.+)/gm, '<li>$1</li>');
-    html = html.replace(/^\d+\.\s+(.+)/gm, '<li>$1</li>');
-    html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
-
-    // Convert blockquotes and horizontal rules
-    html = html.replace(/^>\s*(.*$)/gm, '<blockquote>$1</blockquote>');
-    html = html.replace(/^(?:[\t ]*(?:-{3,}|\*{3,}|_{3,})[\t ]*?)$/gm, '<hr>');
-
-    // Handle paragraphs
-    html = html.split(/\n\n+/).map(block => {
-        block = block.trim();
-        if (!block) return '';
-        
-        // Skip if block is a token or HTML element
-        if (block.startsWith('%%CODE') || 
-            block.startsWith('<') && block.endsWith('>')) {
-            return block;
-        }
-        
-        return `<p>${block.replace(/\n/g, '<br>')}</p>`;
-    }).join('\n\n');
-
     // Restore code blocks
-    html = html.replace(/%%INLINECODE\d+%%/g, match => {
+    processedContent = processedContent.replace(/%%INLINECODE\d+%%/g, match => {
         const block = codeBlocks.get(match);
         return `<code class="inline">${block.code}</code>`;
     });
 
-    html = html.replace(/%%CODEBLOCK\d+%%/g, match => {
+    processedContent = processedContent.replace(/%%CODEBLOCK\d+%%/g, match => {
         const block = codeBlocks.get(match);
         return `<pre><code class="language-${block.language}">${block.code}</code></pre>`;
     });
 
-    const readingTime = calculateReadingTime(html);
+    const readingTime = calculateReadingTime(processedContent);
     frontmatter.readingTime = readingTime;
 
     try {
-        const [newHtml, newFrontmatter] = await pluginLoader.executeHook('afterParse', html, frontmatter);
-        html = newHtml;
+        const [newHtml, newFrontmatter] = await pluginLoader.executeHook('afterParse', processedContent, frontmatter);
+        processedContent = newHtml;
         frontmatter = newFrontmatter;
     } catch (error) {
         console.error('----------');
@@ -541,7 +602,7 @@ async function parseMarkdown(markdown) {
     }
 
     return {
-        content: html.trim(),
+        content: processedContent.trim(),
         frontmatter
     };
 }
@@ -572,9 +633,12 @@ app.get('/', async (req, res) => {
             const contentContent = fs.readFileSync(path.join(__dirname, 'files', 'index.md'), 'utf8');
             let {content, frontmatter} = await parseMarkdown(contentContent);
             
-            console.log(frontmatter)
+            let linksArray = {"/":[]};
+            processedLinks = processlinks(linksArray);
 
-            res.send(await yeettotemplate(template, content, frontmatter));
+            // console.log(frontmatter)
+
+            res.send(await yeettotemplate(template, content, frontmatter, processedLinks));
         } catch (error) {
             console.error('Error in / route:', error);
             res.status(500).send('Error reading the file.');
@@ -591,23 +655,25 @@ app.get('/image/*', (req, res) => {
 
 app.get('/*', async (req, res) => {
     if (isAppModeDev) {
-    try {
-        const filePath = path.join(__dirname, 'files', req.params[0] + '.md');
-        let template = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
-        const contentContent = fs.readFileSync(filePath, 'utf8');
-        let {content, frontmatter} = await parseMarkdown(contentContent);
+        try {
+            const filePath = path.join(__dirname, 'files', req.params[0] + '.md');
+            let template = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
+            const contentContent = fs.readFileSync(filePath, 'utf8');
+            let {content, frontmatter} = await parseMarkdown(contentContent);
+            let linksArray = {"/":[]};
+            const processedLinks = processlinks(linksArray);
 
-        res.send(await yeettotemplate(template, content, frontmatter));
-    } catch (e) {
-        // console.error(name, "\n", message)
-        if (e instanceof Error && e.code === 'ENOENT') {
-            res.status(404).send('404 | File not found.');
-        } else {
-            console.log(e)
-            res.status(500).send('Error reading the file.');
+            res.send(await yeettotemplate(template, content, frontmatter, processedLinks));
+        } catch (e) {
+            // console.error(name, "\n", message)
+            if (e instanceof Error && e.code === 'ENOENT') {
+                res.status(404).send('404 | File not found.');
+            } else {
+                console.log(e)
+                res.status(500).send('Error reading the file.');
+            }
+            // res.status(404).send('File not found.');
         }
-        // res.status(404).send('File not found.');
-    }
     } else {
         res.sendFile(path.join(__dirname, 'builtFiles', req.params[0] + '.html'));
     }
