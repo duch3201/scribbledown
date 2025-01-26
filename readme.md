@@ -52,7 +52,7 @@ sudo docker run -d -p 3001:3001 \
   -v $(pwd)/scribbledown/files:/app/files \
   -v $(pwd)/scribbledown/images:/app/images \
   -v $(pwd)/scribbledown/blog.conf:/app/blog.conf \
-  --name scribbledown shad0wm4n/scribbledown:v1.0.0
+  --name scribbledown shad0wm4n/scribbledown:latest
 ```
 
 As for changing something like the page's template it's also quite simple, the template uses three files
