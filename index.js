@@ -6,8 +6,7 @@ const cssnano = require('cssnano');
 const Terser = require('terser');
 var compression = require('compression')
 var crypto = require('crypto');
-const pluginLoader = require('./pluginLoader');
-// const emitter = require('./pluginInterface');
+const {pluginLoader, emitter} = require('./pluginLoader');
 
 
 let blogConfig
@@ -347,6 +346,38 @@ function processlinks(linksArray) {
     return linksArray
 }
 
+// async function yeettotemplate(template, content, frontmatter, processedLinks, fileName) {
+//     const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
+//     const js = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'app.js'), 'utf8');
+//     const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
+
+//     try {
+//         [template, content, frontmatter] = await pluginLoader.executeHook('beforeTemplate', template, content, frontmatter, fileName);
+
+//     } catch (error) {
+//         console.error('----------');
+//         console.error(error.message);
+//         throw error;
+//     }
+
+
+//     template = template.replace("</head>", `</head><style>${css}</style></head>`);
+//     template = template.replace("</body>", `</body><script>${js}</script></body>`);
+
+//     template = template.replace('{PAGECONTENT}', content);
+
+//     template = template.replace('{BLOGNAMETITLE}', blogConfig.blogname);
+//     template = template.replace('{PAGETITLE}', frontmatter.title);
+//     template = template.replace('{BLOGNAME}', `<a href="/" id="blogname"><span>${blogConfig.blogname}</span></a>`);
+//     template = template.replace('</body>', `</body><style>${hightlightjstheme}</style>`);
+//     template = template.replace('{FOOTERCONTENT}', (blogConfig.footerContent).replace("{year}", new Date().getFullYear()));
+//     // template = template.replace('<script>', '<script>let linksArray = ' + JSON.stringify(processedLinks) + ';');
+//     // template = template.replace('<script>', '<script>let frontmatter = ' + JSON.stringify(frontmatter) + ';');
+    
+    
+//     return template
+// }
+
 async function yeettotemplate(template, content, frontmatter, processedLinks, fileName) {
     try {
         // console.log(frontmatter)
@@ -424,7 +455,6 @@ async function yeettotemplate(template, content, frontmatter, processedLinks, fi
         const processedLinksl = processedLinks;
         const [newNewTemplate] = await pluginLoader.executeHook('afterTemplate', template, content, frontmatter, processedLinksl, fileName);
         template = newNewTemplate;
-        console.log("lollll  \n\n\n\n\n"+template)
         // console.log("\n\n[yettotemplate (afterTemplate Hook)]: ",newNewTemplate)
     } catch (error) {
         console.error('----------');
@@ -613,10 +643,10 @@ async function parseMarkdown(markdown) {
 
 // TODO fix this (emitter.on is not a function)
 
-// emitter.on('rebuild', data => {
-//     console.log(data);
-//     build(data);
-// });
+emitter.on('rebuild', data => {
+    console.log(data);
+    build(data);
+});
 
 app.post('/plugin/:pluginName/:functionName', async (req, res) => {
     try {

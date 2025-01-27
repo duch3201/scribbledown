@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-
+const EventEmitter = require('events');
+const emitter = new EventEmitter();
 
 let data
 
@@ -65,23 +66,22 @@ class PluginLoader {
         if (!this.hooks[hookName]) {
             throw new Error(`Hook ${hookName} does not exist`);
         }
-
+    
         if (this.hooks[hookName].length === 0) {
             return args.length === 1 ? args[0] : args;
         }
-
-        if (hookName === 'invokeRebuild') {
-            return await this.runBuild();
-        }
-
-        console.log(`executeHook ${hookName} received:`, args.map(arg => typeof arg));
-
-        let result = args;
+    
+        let result = [...args]; // Clone initial args
         for (const hook of this.hooks[hookName]) {
             try {
                 const hookResult = await hook(...result);
                 if (hookResult !== undefined) {
+                    // Ensure array format is preserved
                     result = Array.isArray(hookResult) ? hookResult : [hookResult];
+                    // Validate result has expected number of arguments
+                    if (result.length !== args.length) {
+                        throw new Error(`Hook must return ${args.length} values`);
+                    }
                 }
             } catch (error) {
                 throw new Error(`Plugin (${error.pluginName}) failed in hook "${hookName}": ${error.message}`);
@@ -97,6 +97,7 @@ class PluginLoader {
         }
 
         const func = plugin.callableFunctions.get(functionName);
+        console.log(func)
         if (!func) {
             throw new Error(`Function ${functionName} not found in plugin ${pluginName}`);
         }
@@ -106,4 +107,4 @@ class PluginLoader {
 
 }
 const pluginLoader = new PluginLoader()
-module.exports = pluginLoader;
+module.exports = {pluginLoader, emitter};

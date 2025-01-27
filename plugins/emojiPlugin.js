@@ -7,7 +7,7 @@ class emojiPlugin extends PluginInterface {
 
         let config = this.getPluginConfig()
 
-        this.log(JSON.stringify(config));
+        // this.log(JSON.stringify(config));
 
         const emojiList = config.emojiList;
 

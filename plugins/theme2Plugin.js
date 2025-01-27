@@ -6,13 +6,15 @@ class theme2Plugin extends PluginInterface {
         
         this.registerHook('beforeTemplate', async (template, content, frontmatter, fileName) => {
             this.log('adding in frontmatter data');
+            // Validate inputs
+            if (!content || !frontmatter) {
+                return [template, content, frontmatter];
+            }
             
-            // Only modify content if it contains the target elements
-            // if (content.includes('</h1>')) {
+            content = content.replace("<h1>", "<div id='heading'><h1 id='contentHeading'>");
             content = content.replace("</h1>", `</h1><div id="subtitle"><p class="subtitle-text">${frontmatter.date}</p><p class="reading-time subtitle-text">${frontmatter.readingTime} min read</p></div></div>`);
-            // }
             
-            return [template, content, frontmatter];
+            return [template, content, frontmatter, fileName];
         });
 
         this.registerHook('afterTemplate', async (template, content, frontmatter, linksArray, fileName) => {
@@ -60,10 +62,8 @@ class theme2Plugin extends PluginInterface {
             // if (template.includes('{PAGES}')) {
                 template = template.replace('{PAGES}', `<ul>${processedLinks.join('')}</ul>`);
                 // }
-                this.log("KURWAAAA")
-            this.log(template)
                 
-            return [template, content, frontmatter];
+            return [template, content, frontmatter, linksArray, fileName];
 
         });
     }

@@ -1,6 +1,5 @@
 const fs = require('fs');
-const EventEmitter = require('events');
-// const emitter = new EventEmitter();
+
 
 class PluginInterface {
     constructor(name, version) {
@@ -91,16 +90,16 @@ class PluginInterface {
     }
 
     // todo fix this
-    // async runBuild(file) {
-    //     console.log("test")
-    //     if (!file) {
-    //         console.log(`a plugin triggered a rebuild of all files`);
-    //         emitter.emit('rebuild')
-    //     } else {
-    //         console.log(`a plugin triggered a rebuild`)
-    //         emitter.emit('rebuild', file)
-    //     }
-    // }
+    async runBuild(file) {
+        console.log("test")
+        if (!file) {
+            console.log(`a plugin triggered a rebuild of all files`);
+            emitter.emit('rebuild')
+        } else {
+            console.log(`a plugin triggered a rebuild`)
+            emitter.emit('rebuild', file)
+        }
+    }
 }
 
 module.exports = PluginInterface;
