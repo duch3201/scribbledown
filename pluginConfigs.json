@@ -1,11 +1,8 @@
-const PluginInterface = require('../pluginInterface');
-const {emitter} = require('../pluginLoader');
-
-class testPlugin extends PluginInterface {
-    constructor() {
-        super('emojiPlugin', '0.1.0')
-
-        const emojiList = {
+{
+    "defaultThemePlugin": {},
+    "testPlugin": {},
+    "emojiPlugin": {
+        "emojiList": {
             ":smile:": "😊",
             ":laugh:": "😂",
             ":sad:": "😢",
@@ -35,22 +32,5 @@ class testPlugin extends PluginInterface {
             ":email:": "📧",
             ":phone:": "📞"
         }
-
-        this.registerHook('beforeParse', async (markdown) => {
-            console.log('[emojiPlugin]: looking through content to find your emojies!');
-            for (const [key, value] of Object.entries(emojiList)) {
-                markdown = markdown.replaceAll(key, value);
-            }
-            return markdown;    
-        });
-
-        // this.registerHook('invokeRebuild', async () => {
-        //     setTimeout(() => {
-        //         console.log('[emojiPlugin]: Rebuilding the site!');
-        //         // emitter.emit('rebuild', "index.md");
-        //     }, 8000);
-        // });
     }
 }
-
-module.exports = testPlugin;

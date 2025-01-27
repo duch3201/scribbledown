@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const EventEmitter = require('events');
-const emitter = new EventEmitter();
+
+
+let data
 
 class PluginLoader {
     constructor() {
@@ -26,10 +27,29 @@ class PluginLoader {
             if (plugin.endsWith('.js')) {
                 const pluginPath = path.join(pluginDir, plugin);
                 const Plugin = require(pluginPath);
-                console.log(`[PluginLoader]: Loading plugin ${plugin}`);
                 const pluginInstance = new Plugin();
-                this.plugins.set(pluginInstance.name, pluginInstance);
+                console.log(`[PluginLoader]: Loading plugin ${plugin}`);
+                // try {
+                //     data = fs.readFileSync("pluginConfigs.json", "utf8");
+                // } catch (error) {
+                //     if (error.code === 'ENOENT') {
+                //         fs.writeFileSync('pluginConfigs.json', "{}");
+                //         console.log(`[PluginLoader]: Created pluginConfigs.json`);
+                //     }
+                // }
+                // if (JSON.parse(data)[pluginInstance.name] == undefined) {
+                //     let temp = JSON.parse(data);
+                //     temp[Plugin.name] = {};
+                //     try {
+                //         fs.writeFileSync("pluginConfigs.json", JSON.stringify(temp, null, 4));
+                //     } catch (error) {
+                //         console.error("---------\nfailed to save new plugin's config");
+                //         throw error;
+                //     }
+                //     console.log(`[PluginLoader]: Created config for ${pluginInstance.name}`);
+                // }
 
+                this.plugins.set(pluginInstance.name, pluginInstance);
                 Object.keys(pluginInstance.hooks).forEach(hookName => {
                     if (pluginInstance.hooks[hookName].length > 0) {
                         this.hooks[hookName].push(...pluginInstance.hooks[hookName]);
@@ -54,6 +74,8 @@ class PluginLoader {
             return await this.runBuild();
         }
 
+        console.log(`executeHook ${hookName} received:`, args.map(arg => typeof arg));
+
         let result = args;
         for (const hook of this.hooks[hookName]) {
             try {
@@ -62,7 +84,7 @@ class PluginLoader {
                     result = Array.isArray(hookResult) ? hookResult : [hookResult];
                 }
             } catch (error) {
-                throw new Error(`Plugin failed in hook "${hookName}": ${error.message}`);
+                throw new Error(`Plugin (${error.pluginName}) failed in hook "${hookName}": ${error.message}`);
             }
         }
         return args.length === 1 ? result[0] : result;
@@ -82,19 +104,6 @@ class PluginLoader {
         return await func(args);
     }
 
-
-    // todo fix this
-    async runBuild(file) {
-        console.log("test")
-        if (!file) {
-            console.log(`a plugin triggered a rebuild of all files`);
-            emitter.emit('rebuild')
-        } else {
-            console.log(`a plugin triggered a rebuild`)
-            emitter.emit('rebuild', file)
-        }
-    }
-
 }
 const pluginLoader = new PluginLoader()
-module.exports = {pluginLoader, emitter};
+module.exports = pluginLoader;

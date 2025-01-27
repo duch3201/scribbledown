@@ -4,23 +4,24 @@ class theme2Plugin extends PluginInterface {
     constructor() {
         super('theme2Plugin', '1.0.0')
         
-        this.registerHook('beforeTemplate', async (template, content, frontmatter) => {
-            console.log('[theme2Plugin]: adding in frontmatter data');
+        this.registerHook('beforeTemplate', async (template, content, frontmatter, fileName) => {
+            this.log('adding in frontmatter data');
             
             // Only modify content if it contains the target elements
-            if (content.includes('</h1>')) {
-                content = content.replace("</h1>", `</h1><div id="subtitle"><p class="subtitle-text">${frontmatter.date}</p><p class="reading-time subtitle-text">${frontmatter.readingTime} min read</p></div></div>`);
-            }
+            // if (content.includes('</h1>')) {
+            content = content.replace("</h1>", `</h1><div id="subtitle"><p class="subtitle-text">${frontmatter.date}</p><p class="reading-time subtitle-text">${frontmatter.readingTime} min read</p></div></div>`);
+            // }
             
             return [template, content, frontmatter];
         });
 
-        this.registerHook('afterTemplate', async (template, content, frontmatter, linksArray) => {
+        this.registerHook('afterTemplate', async (template, content, frontmatter, linksArray, fileName) => {
             console.log('[theme2Plugin]: adding in page nav');
             if (!linksArray) {
                 return [template, content, frontmatter];
             }
 
+            
             // doing da nav
             let processedFolders = {};
             // let linksArray = {"/":[]};
@@ -37,7 +38,7 @@ class theme2Plugin extends PluginInterface {
                         } else {
                             processedLinks.push(`<li><a href="/${link}">${link}</a></li>`);
                         }
-        
+                        
                         
                     } else {
                         if (!processedFolders[key]) {
@@ -56,10 +57,12 @@ class theme2Plugin extends PluginInterface {
             }
 
             // Only modify template if it contains the target placeholder
-            if (template.includes('{PAGES}')) {
+            // if (template.includes('{PAGES}')) {
                 template = template.replace('{PAGES}', `<ul>${processedLinks.join('')}</ul>`);
-            }
-
+                // }
+                this.log("KURWAAAA")
+            this.log(template)
+                
             return [template, content, frontmatter];
 
         });

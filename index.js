@@ -6,7 +6,9 @@ const cssnano = require('cssnano');
 const Terser = require('terser');
 var compression = require('compression')
 var crypto = require('crypto');
-const {pluginLoader, emitter} = require('./pluginLoader');
+const pluginLoader = require('./pluginLoader');
+// const emitter = require('./pluginInterface');
+
 
 let blogConfig
 let isAppModeDev;
@@ -43,7 +45,7 @@ async function build(fileName) {
 
             const {content, frontmatter} = await parseMarkdown(fileToBuild);
             const HTMLtemplate = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
-            const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter, processedLinks);
+            const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter, processedLinks, fileName);
 
             if (fileName.split('/').length > 1) {
                 fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName[0], fileName[1].replace('.md', '.html')), builtPage);
@@ -98,7 +100,7 @@ async function build(fileName) {
 
             fileContent = await fs.readFileSync(path.join(__dirname, 'files', fileName), 'utf8');
             const {content, frontmatter} = await parseMarkdown(fileContent);
-            const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter, processedLinks);
+            const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter, processedLinks, fileName);
 
             fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName.replace('.md', '.html')), builtPage);
             checksums[fileName] = generateChecksum(fileContent);
@@ -117,7 +119,7 @@ async function build(fileName) {
 
                     fileContent = await fs.readFileSync(path.join(__dirname, 'files', fileName, subfile), 'utf8');
                     const {content, frontmatter} = await parseMarkdown(fileContent);
-                    const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter, processedLinks);
+                    const builtPage = await yeettotemplate(HTMLtemplate, content, frontmatter, processedLinks, fileName);
 
                     fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName, subfile.replace('.md', '.html')), builtPage);
                     checksums[`${fileName}/${subfile}`] = generateChecksum(fileContent);
@@ -345,10 +347,10 @@ function processlinks(linksArray) {
     return linksArray
 }
 
-async function yeettotemplate(template, content, frontmatter, processedLinks) {
+async function yeettotemplate(template, content, frontmatter, processedLinks, fileName) {
     try {
         // console.log(frontmatter)
-        const [newTemplate, newContent, newFrontmatter] = await pluginLoader.executeHook('beforeTemplate', template, content, frontmatter);
+        const [newTemplate, newContent, newFrontmatter] = await pluginLoader.executeHook('beforeTemplate', template, content, frontmatter, fileName);
         template = newTemplate;
         content = newContent;
         frontmatter = newFrontmatter;
@@ -359,7 +361,7 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
         throw error;
     }
 
-    console.log("lollll  "+processedLinks)
+    // console.log("lollll  "+template)
 
     const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
     const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
@@ -406,6 +408,7 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
     }
 
     template = template.replace('{PAGECONTENT}', content);
+
     template = template.replace('{BLOGNAMETITLE}', blogConfig.blogname);
     template = template.replace('{PAGETITLE}', frontmatter.title);
     template = template.replace('{BLOGNAME}', `<a href="/" id="blogname"><span>${blogConfig.blogname}</span></a>`);
@@ -413,14 +416,15 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
     template = template.replace('{FOOTERCONTENT}', (blogConfig.footerContent).replace("{year}", new Date().getFullYear()));
     // template = template.replace('<script>', '<script>let linksArray = ' + JSON.stringify(processedLinks) + ';');
     // template = template.replace('<script>', '<script>let frontmatter = ' + JSON.stringify(frontmatter) + ';');
-
+    
     // console.log("[yettotemplate]: ",template)
-
+    
     try {
         // console.log(processedLinks)
         const processedLinksl = processedLinks;
-        const [newNewTemplate] = await pluginLoader.executeHook('afterTemplate', template, content, frontmatter, processedLinksl);
+        const [newNewTemplate] = await pluginLoader.executeHook('afterTemplate', template, content, frontmatter, processedLinksl, fileName);
         template = newNewTemplate;
+        console.log("lollll  \n\n\n\n\n"+template)
         // console.log("\n\n[yettotemplate (afterTemplate Hook)]: ",newNewTemplate)
     } catch (error) {
         console.error('----------');
@@ -607,10 +611,12 @@ async function parseMarkdown(markdown) {
     };
 }
 
-emitter.on('rebuild', data => {
-    console.log(data);
-    build(data);
-});
+// TODO fix this (emitter.on is not a function)
+
+// emitter.on('rebuild', data => {
+//     console.log(data);
+//     build(data);
+// });
 
 app.post('/plugin/:pluginName/:functionName', async (req, res) => {
     try {
@@ -638,7 +644,7 @@ app.get('/', async (req, res) => {
 
             // console.log(frontmatter)
 
-            res.send(await yeettotemplate(template, content, frontmatter, processedLinks));
+            res.send(await yeettotemplate(template, content, frontmatter, processedLinks, 'index.md'));
         } catch (error) {
             console.error('Error in / route:', error);
             res.status(500).send('Error reading the file.');
@@ -663,7 +669,7 @@ app.get('/*', async (req, res) => {
             let linksArray = {"/":[]};
             const processedLinks = processlinks(linksArray);
 
-            res.send(await yeettotemplate(template, content, frontmatter, processedLinks));
+            res.send(await yeettotemplate(template, content, frontmatter, processedLinks, req.params[0] + '.md'));
         } catch (e) {
             // console.error(name, "\n", message)
             if (e instanceof Error && e.code === 'ENOENT') {
