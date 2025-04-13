@@ -5,13 +5,15 @@ const postcss = require('postcss');
 const cssnano = require('cssnano');
 const Terser = require('terser');
 var compression = require('compression')
-var crypto = require('crypto');
+const {parseMarkdown} = require('./parser');
+const {processlinks, generateChecksum} = require('./utils');
 const {pluginLoader, emitter} = require('./pluginLoader');
 
 let blogConfig
 let isAppModeDev;
 let rebuild;
 let currentTheme;
+let arePluginsEnabled;
 let currentThemeConfig;
 let processedLinks
 
@@ -154,20 +156,8 @@ async function build(fileName) {
 }
 
 
-// function "borrowed" from https://gist.github.com/zfael/a1a6913944c55843ed3e999b16350b50
-function generateChecksum(str, algorithm, encoding) {
-    return crypto
-        .createHash(algorithm || 'md5')
-        .update(str, 'utf8')
-        .digest(encoding || 'hex');
-}
 
-function calculateReadingTime(text) {
-    const wordsPerMinute = 200;
-    const wordCount = text.trim().split(/\s+/).length;
-    const readingTime = Math.ceil(wordCount / wordsPerMinute);
-    return readingTime;
-}
+
 
 async function init() {
     console.log("scribbledown init!");
@@ -181,11 +171,12 @@ async function init() {
             const configstat = fs.statSync(path.join(__dirname, 'blog.conf'));
             if (configstat.size === 0) {
                 console.log("Config file is empty!");
-                console.error('writing the default to blog.conf');
+                console.error('writing defaults to blog.conf');
                 blogConfig = {
                     blogname: 'scribbledown blog',
                     footerContent: '© {year} scribbledown.',
                     dev: 'false',
+                    arePluginsEnabled: 'false',
                     currentTheme: 'default'
                 };
                 fs.writeFileSync(path.join(__dirname, 'blog.conf'), JSON.stringify(blogConfig, null, 4));
@@ -238,6 +229,12 @@ async function init() {
             let checksums = JSON.parse(fs.readFileSync(path.join(__dirname, 'checksums.json'), 'utf8'));
             rebuild = false; // Reset rebuild flag
 
+            // Check if the checksums file is empty
+            if (checksums === null || Object.keys(checksums).length === 0) {
+                console.log('Checksums file is empty!');
+                build();
+            }
+
             // Check if the files have changed
             fs.readdirSync(path.join(__dirname, 'files')).forEach(file => {
                 const fileName = file;
@@ -269,13 +266,15 @@ async function init() {
 
             // check if the template, css or js files have changed
             console.log('Checking template, CSS, and JS files');
-            const HTMLtemplate = fs.readFileSync(path.join(__dirname, 'template', 'index.html'), 'utf8');
-            const css = fs.readFileSync(path.join(__dirname, 'template', 'index.css'), 'utf8');
-            const js = fs.readFileSync(path.join(__dirname, 'template', 'app.js'), 'utf8');
+            const HTMLtemplate = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
+            const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
+            const js = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'app.js'), 'utf8');
             const currentChecksum = generateChecksum(HTMLtemplate + css + js);
             if (!checksums['template'] || checksums['template'] !== currentChecksum) {
                 console.log('Template, CSS, or JS files have changed');
                 rebuild = true;
+            } else {
+                console.log('Template, CSS, and JS files are unchanged');
             }
 
             // check if the config file has changed
@@ -284,27 +283,37 @@ async function init() {
             if (!checksums['config'] || checksums['config'] !== configChecksum) {
                 console.log('Config file has changed');
                 rebuild = true;
+            } else {
+                console.log('Config file is unchanged');
             }
 
         } catch (error) {
             console.error('----------\nError reading checksums.json:', error);
             rebuild = true;
         }
-
-        try {
-            console.log('Loading plugins...');
-            await pluginLoader.loadPlugins();
-
-            const shouldRebuild = await pluginLoader.executeHook('invokeRebuild');
-            if (shouldRebuild) {
-                console.log('Rebuild requested by plugin');
-                rebuild = true;
-            }
-        } catch (error) {
-            console.error(`--------\nError loading plugins\n${error}`);
-            throw error;
+        // check if plugins are enabled
+        if (blogConfig.arePluginsEnabled === 'true') {
+            arePluginsEnabled = true;
+        } else {
+            arePluginsEnabled = false;
         }
 
+        if (arePluginsEnabled) {
+            try {
+                console.log('Loading plugins...');
+                await pluginLoader.loadPlugins();
+                
+                const shouldRebuild = await pluginLoader.executeHook('invokeRebuild');
+                if (shouldRebuild) {
+                    console.log('Rebuild requested by plugin');
+                    rebuild = true;
+                }
+            } catch (error) {
+                console.error(`--------\nError loading plugins\n${error}`);
+                throw error;
+            }
+        }
+            
         if (blogConfig.dev === 'true') {
             console.warn("Running in dev mode!!");
             isAppModeDev = true;
@@ -315,35 +324,14 @@ async function init() {
             // build()
         }
 
+
     } catch (error) {
         console.error('Error in init:', error);
         throw error;
     }
 }
 
-function processlinks(linksArray) {
-    fs.readdirSync(path.join(__dirname, 'files')).forEach(file => {
-        const fileName = file;
-        const stats = fs.statSync(path.join(__dirname, 'files', file));
-        
-        if (fileName.endsWith('.md')) {
-            if (fileName === 'index.md') {
-                linksArray["/"].push('/');
-            }
-            let link = fileName.replace('.md', '');
-            linksArray["/"].push(link);
-        } else if (stats.isDirectory()) {
-            linksArray[fileName] = [];
-            fs.readdirSync(path.join(__dirname, 'files', fileName)).forEach(subfile => {
-                if (subfile.endsWith('.md')) {
-                    let link = subfile.replace('.md', '');
-                    linksArray[fileName].push(fileName+"/"+link);
-                }
-            });
-        }
-    });
-    return linksArray
-}
+
 
 async function yeettotemplate(template, content, frontmatter, processedLinks) {
     try {
@@ -430,182 +418,7 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
     return template
 }
 
-async function parseMarkdown(markdown) {
-    try {
-        markdown = await pluginLoader.executeHook('beforeParse', markdown);
-    } catch (error) {
-        console.error('----------');
-        console.error(error.message);
-        throw error;
-    }
 
-    if (typeof markdown !== 'string') {
-        throw new TypeError('Input must be a string');
-    }
-
-    let html = markdown;
-    let frontmatter = {};
-    const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
-    const frontmatterMatch = html.match(frontmatterRegex);
-    
-    if (frontmatterMatch) {
-        const frontmatterContent = frontmatterMatch[1];
-        frontmatterContent.split('\n').forEach(line => {
-            const [key, ...valueParts] = line.split(':');
-            if (key && valueParts.length) {
-                frontmatter[key.trim()] = valueParts.join(':').trim();
-            }
-        });
-        html = html.slice(frontmatterMatch[0].length).trim();
-    }
-
-    // Protect code blocks
-    const codeBlocks = new Map();
-    let codeBlockId = 0;
-
-    html = html.replace(/```([^\n]*)\n([\s\S]*?)```/g, (match, lang, code) => {
-        const token = `%%CODEBLOCK${codeBlockId}%%`;
-        codeBlocks.set(token, {
-            language: lang.trim() || 'plaintext',
-            code: code.trim()
-        });
-        codeBlockId++;
-        return token;
-    });
-
-    // Handle inline code
-    html = html.replace(/`([^`]+)`/g, (match, code) => {
-        const token = `%%INLINECODE${codeBlockId}%%`;
-        codeBlocks.set(token, {
-            language: 'inline',
-            code: code
-        });
-        codeBlockId++;
-        return token;
-    });
-
-    // Improved list and paragraph processing
-    let processedLines = [];
-    let isInList = false;
-    let currentListType = null;
-
-    html.split('\n').forEach(line => {
-        // Unordered list item detection
-        const unorderedListMatch = line.match(/^[\*\-\+]\s+(.+)/);
-        // Ordered list item detection
-        const orderedListMatch = line.match(/^\d+\.\s+(.+)/);
-        // Blockquote detection
-        const blockquoteMatch = line.match(/^>\s*(.*)/);
-        // Heading detection
-        const headingMatch = line.match(/^(#{1,6})\s+(.+)/);
-        // Horizontal rule detection
-        const hrMatch = line.match(/^(?:[\t ]*(?:-{3,}|\*{3,}|_{3,})[\t ]*?)$/);
-
-        if (unorderedListMatch) {
-            if (!isInList || currentListType !== 'ul') {
-                // Start of a new unordered list
-                processedLines.push('<ul>');
-                isInList = true;
-                currentListType = 'ul';
-            }
-            processedLines.push(`<li>${unorderedListMatch[1]}</li>`);
-        } else if (orderedListMatch) {
-            if (!isInList || currentListType !== 'ol') {
-                // Start of a new ordered list
-                processedLines.push('<ol>');
-                isInList = true;
-                currentListType = 'ol';
-            }
-            processedLines.push(`<li>${orderedListMatch[1]}</li>`);
-        } else if (blockquoteMatch) {
-            // Close any open list
-            if (isInList) {
-                processedLines.push(currentListType === 'ul' ? '</ul>' : '</ol>');
-                isInList = false;
-                currentListType = null;
-            }
-            processedLines.push(`<blockquote>${blockquoteMatch[1]}</blockquote>`);
-        } else if (headingMatch) {
-            // Close any open list
-            if (isInList) {
-                processedLines.push(currentListType === 'ul' ? '</ul>' : '</ol>');
-                isInList = false;
-                currentListType = null;
-            }
-            // Convert heading based on number of #
-            const headingLevel = headingMatch[1].length;
-            processedLines.push(`<h${headingLevel}>${headingMatch[2]}</h${headingLevel}>`);
-        } else if (hrMatch) {
-            // Close any open list
-            if (isInList) {
-                processedLines.push(currentListType === 'ul' ? '</ul>' : '</ol>');
-                isInList = false;
-                currentListType = null;
-            }
-            processedLines.push('<hr>');
-        } else {
-            // Not a list item
-            if (isInList) {
-                // Close the previous list
-                processedLines.push(currentListType === 'ul' ? '</ul>' : '</ol>');
-                isInList = false;
-                currentListType = null;
-            }
-
-            // Trim the line and add non-empty lines as paragraphs
-            const trimmedLine = line.trim();
-            if (trimmedLine) {
-                processedLines.push(`<p>${trimmedLine}</p>`);
-            }
-        }
-    });
-
-    // Close any open list at the end
-    if (isInList) {
-        processedLines.push(currentListType === 'ul' ? '</ul>' : '</ol>');
-    }
-
-    // Join the processed lines
-    let processedContent = processedLines.join('\n');
-
-    // Additional Markdown conversions
-    processedContent = processedContent.replace(/(\*\*|__)(.*?)\1/g, '<strong>$2</strong>');
-    processedContent = processedContent.replace(/(\*|_)(.*?)\1/g, '<em>$2</em>');
-    processedContent = processedContent.replace(/~~(.*?)~~/g, '<del>$1</del>');
-    processedContent = processedContent.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 
-        (match, alt, url) => `<img src="${url}" alt="${alt}">`);
-    processedContent = processedContent.replace(/\[([^\]]+)\]\(([^)"]+)(?:\s+"([^"]+)")?\)/g, 
-        (match, text, url, title) => `<a href="${url}"${title ? ` title="${title}"` : ''}>${text}</a>`);
-
-    // Restore code blocks
-    processedContent = processedContent.replace(/%%INLINECODE\d+%%/g, match => {
-        const block = codeBlocks.get(match);
-        return `<code class="inline">${block.code}</code>`;
-    });
-
-    processedContent = processedContent.replace(/%%CODEBLOCK\d+%%/g, match => {
-        const block = codeBlocks.get(match);
-        return `<pre><code class="language-${block.language}">${block.code}</code></pre>`;
-    });
-
-    const readingTime = calculateReadingTime(processedContent);
-    frontmatter.readingTime = readingTime;
-
-    try {
-        const [newHtml, newFrontmatter] = await pluginLoader.executeHook('afterParse', processedContent, frontmatter);
-        processedContent = newHtml;
-        frontmatter = newFrontmatter;
-    } catch (error) {
-        console.error('----------');
-        console.error(error.message);
-        throw error;
-    }
-
-    return {
-        content: processedContent.trim(),
-        frontmatter
-    };
-}
 
 emitter.on('rebuild', data => {
     console.log(data);
@@ -683,7 +496,7 @@ app.get('/*', async (req, res) => {
 
 // Start server
 const PORT = 3001;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     init();
     console.log(`Server is running on port ${PORT}`);
 });
