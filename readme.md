@@ -79,16 +79,18 @@ there's also blog.conf, it looks like this:
 {
     "blogname":"scribbledown blog",
     "footerContent":"<p>© {year}</p> <a href='https://github.com/duch3201'>shadowman</a>",
-    "dev":"false"
+    "dev":"false",
+    "arePluginsEnabled":"false",
+    "currentTheme":"default"
 }
 
 ```
 
 in here you define your blog's name, and the footer content.
-devmode will tell scribble down to dynamically build and send out the pages, instead of using the built at start up ones
+devmode will tell scribbledown to dynamically build and send out the pages, instead of using the built at start up ones
 
 ### What about images?
-any image that's added to the `images/` directory will be accesible via the `/images/{filename}` endpoint
+any image that's added to the `images/` directory will be accessible via the `/images/{filename}` endpoint
 
 ## How do i contribute?
 
@@ -97,9 +99,12 @@ if you ran into any problems just submit an issue, i'll try my best to help you!
 
 btw if you create a template and you'd like to show it off, create an issue and i'll gladly put a link to it in this readme!
 
+## Plugins
+Scribbledown supports plugins! to learn more check out [plugins.md](/plugins.md)
+
 ## attribution
 
-to built scribbledown i used these libraries
+to build scribbledown i used these libraries
 * compression
 * express
 * cssnano

@@ -30,7 +30,7 @@ class commentsPlugin extends PluginInterface {
         //     }
         // ];
         var comments = {
-            ["/dev testing stuff/lol"]: [
+            ["/test"]: [
                 {
                     name: 'John Doe',
                     comment: 'This is a great article!',

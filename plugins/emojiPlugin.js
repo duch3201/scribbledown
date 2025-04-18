@@ -37,7 +37,7 @@ class testPlugin extends PluginInterface {
         }
 
         this.registerHook('beforeParse', async (markdown) => {
-            console.log('[emojiPlugin]: looking through content to find your emojies!');
+            this.log(' looking through content to find your emojies!');
             for (const [key, value] of Object.entries(emojiList)) {
                 markdown = markdown.replaceAll(key, value);
             }
@@ -46,7 +46,7 @@ class testPlugin extends PluginInterface {
 
         // this.registerHook('invokeRebuild', async () => {
         //     setTimeout(() => {
-        //         console.log('[emojiPlugin]: Rebuilding the site!');
+        //         this.log('[emojiPlugin]: Rebuilding the site!');
         //         // emitter.emit('rebuild', "index.md");
         //     }, 8000);
         // });

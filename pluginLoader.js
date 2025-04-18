@@ -62,7 +62,7 @@ class PluginLoader {
                     result = Array.isArray(hookResult) ? hookResult : [hookResult];
                 }
             } catch (error) {
-                throw new Error(`Plugin failed in hook "${hookName}": ${error.message}`);
+                throw new Error(`Plugin failed in hook "${hookName}", ${error.message}`);
             }
         }
         return args.length === 1 ? result[0] : result;

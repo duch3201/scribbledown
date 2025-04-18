@@ -27,6 +27,11 @@ app.use((req, res, next) => {
     next();
 });
 
+
+/**
+ * by default goes over the `files/` directory and converts each .md file to a .html file, if `fileName` is present it will only covert that specific file
+ * @param {string} fileName - optional
+ */
 async function build(fileName) {
 
     // get links
@@ -72,7 +77,7 @@ async function build(fileName) {
     } catch (error) {
         console.error('----------');
         console.error(error.message);
-        throw error;
+        // throw error;
     }
     console.log('Building files...');
     const HTMLtemplate = await fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
@@ -148,7 +153,7 @@ async function build(fileName) {
     } catch (error) {
         console.error('----------');
         console.error(error.message);
-        throw error;
+        // throw error;
     }
 
 
@@ -158,7 +163,9 @@ async function build(fileName) {
 
 
 
-
+/**
+ *  simple init function
+ */
 async function init() {
     console.log("scribbledown init!");
 
@@ -292,6 +299,7 @@ async function init() {
             rebuild = true;
         }
         // check if plugins are enabled
+        console.log(blogConfig.arePluginsEnabled)
         if (blogConfig.arePluginsEnabled === 'true') {
             arePluginsEnabled = true;
         } else {
@@ -299,6 +307,7 @@ async function init() {
         }
 
         if (arePluginsEnabled) {
+            console.log("kurwa")
             try {
                 console.log('Loading plugins...');
                 await pluginLoader.loadPlugins();
@@ -312,6 +321,8 @@ async function init() {
                 console.error(`--------\nError loading plugins\n${error}`);
                 throw error;
             }
+        } else {
+            console.log("not kurwa")
         }
             
         if (blogConfig.dev === 'true') {
@@ -343,11 +354,11 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
         // console.log('\n\n[yettotemplate (beforeTemplate Hook)]: \n',newTemplate)
     } catch (error) {
         console.error('----------');
-        console.error(error.message);
-        throw error;
+        console.error(error);
+        // throw error;
     }
 
-    console.log("lollll  "+processedLinks)
+    // console.log("lollll  "+JSON.stringify(processedLinks))
 
     const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
     const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
@@ -413,7 +424,7 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
     } catch (error) {
         console.error('----------');
         console.error(error.message);
-        throw error;
+        // throw error;
     }
     return template
 }
