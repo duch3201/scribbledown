@@ -1,6 +1,6 @@
 {
   "name": "scribbledown",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "A lightweight Markdown-powered blogging engine thingy",
   "main": "index.js",
   "scripts": {

@@ -24,6 +24,9 @@ COPY ./pluginConfigInterface.js ./
 COPY ./pluginInterface.js ./
 COPY ./pluginLoader.js ./
 
+RUN ls ./
+RUN ls ./defaults
+
 # Create necessary directories and files
 RUN mkdir -p /app/builtFiles /app/files && \
     touch /app/checksums.json && \
