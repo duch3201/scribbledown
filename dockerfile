@@ -20,7 +20,7 @@ COPY ./template/default ./defaults/template/default
 COPY ./template/theme2 ./defaults/template/theme2
 COPY ./plugins ./defaults/plugins
 COPY ./dracula.css ./
-# COPY ./blog.conf ./defaults/
+COPY ./blog.conf ./defaults/
 COPY ./index.js ./
 COPY ./parser.js ./
 COPY ./utils.js ./
@@ -40,14 +40,14 @@ RUN mkdir -p /app/builtFiles /app/files && \
 # Set permissions for the app directory and files directory
 RUN chmod -R 775 /app/builtFiles && \
     chmod -R 775 /app/files && \
-    # chmod 664 /app/defaults/blog.conf && \
+    chmod 664 /app/defaults/blog.conf && \
     chmod 664 /app/checksums.json
 
 # add the stupid init script
-# COPY init.sh /usr/local/bin/init.sh
-# RUN chmod +x /usr/local/bin/init.sh
+COPY init.sh /usr/local/bin/init.sh
+RUN chmod +x /usr/local/bin/init.sh
 
-# ENTRYPOINT ["/usr/local/bin/init.sh"]
+ENTRYPOINT ["/usr/local/bin/init.sh"]
 
 EXPOSE 3001
 
