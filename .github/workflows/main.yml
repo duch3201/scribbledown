@@ -39,5 +39,6 @@ jobs:
         run: docker push shad0wm4n/scribbledown:latest
 
       - name: Push Docker Image (tag)
-        run: docker tag shad0wm4n/scribbledown:${{ env.IMAGE_VERSION }} shad0wm4n/scribbledown:latest
-        run: docker push shad0wm4n/scribbledown:latest
+        run: |
+          docker tag shad0wm4n/scribbledown:${{ env.IMAGE_VERSION }} shad0wm4n/scribbledown:latest
+          docker push shad0wm4n/scribbledown:latest
