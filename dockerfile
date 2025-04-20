@@ -8,8 +8,8 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# RUN mkdir ./defaults/
-# RUN mkdir ./defaults/images
+RUN mkdir ./defaults/
+RUN mkdir ./defaults/images
 
 # Copy application files
 COPY ./template/default/* ./defaults/template/default/
