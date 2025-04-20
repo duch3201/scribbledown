@@ -11,10 +11,14 @@ RUN npm install
 RUN mkdir ./defaults/
 RUN mkdir ./defaults/images
 
-# Copy application files
-COPY ./template/default/* ./defaults/template/default/
-COPY ./template/theme2/* ./defaults/template/theme2/
-COPY ./plugins/* ./defaults/plugins/
+RUN mkdir -p ./defaults/template/default \
+    && mkdir -p ./defaults/template/theme2 \
+    && mkdir -p ./defaults/plugins
+
+# Copy folders
+COPY ./template/default ./defaults/template/default
+COPY ./template/theme2 ./defaults/template/theme2
+COPY ./plugins ./defaults/plugins
 COPY ./dracula.css ./
 # COPY ./blog.conf ./defaults/
 COPY ./index.js ./
