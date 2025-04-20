@@ -1,5 +1,6 @@
 var crypto = require('crypto');
 const fs = require('fs');
+const fsp = require('fs/promises');
 const path = require('path');
 
 
@@ -40,34 +41,69 @@ function generateChecksum(str, algorithm, encoding) {
         .digest(encoding || 'hex');
 }
 
-function firstTimeRun() {
-    console.log("Running for the first time, preparing... (go grab a coffee)")
+/**
+ * a helper function made to help with first time initialization / after update initalization
+ * TODO: 
+ * - get git commit hash string for update tracking save it to .scribbledown-pastFirstrun, currently using only semantic versioning instead of semanting versioning+git hash
+ * - create a update part of this function
+ * - (maybe rename the function after adding the updating part???)
+ */
+async function firstTimeRun() {
+    const flagFile = path.join(__dirname, '.scribbledown-pastFirstrun');
+    if (fs.existsSync(flagFile)) return;
+
+    console.log("Running for the first time, preparing... (go grab a coffee)");
+
+    const dirsToCheck = ['files', 'images', 'plugins', 'template'];
     try {
+        console.log("Creating required directories...");
 
-        console.log("Creating required directories...")
-        fs.mkdirSync(path.join(__dirname, 'files'));
-        fs.mkdirSync(path.join(__dirname,  'images'));
-        fs.mkdirSync(path.join(__dirname,  'plugins'));
-        console.log("Creating required files...")
-        fs.writeFileSync(path.join(__dirname, 'blog.conf'), {
-            "blogname":"scribbledown blog",
-            "footerContent":"<p>© {year}</p> <a href='https://github.com/duch3201'>shadowman</a>",
-            "dev":"true",
-            "arePluginsEnabled":"true",
-            "currentTheme":"default"
-        }, 'utf8');
-        
-        fs.writeFileSync(path.join(__dirname, 'files', 'index.md'), "#Scribbledown\nWelcome, everything is fine!", 'utf8');
-    
-        fs.writeFileSync(path.join(__dirname, '.scribbledown-pastFirstrun'), "yep", 'utf8');
-        console.log("Done!")
-    
+        for (const dir of dirsToCheck) {
+            const fullPath = path.join(__dirname, dir);
+            if (!fs.existsSync(fullPath)) {
+                fs.mkdirSync(fullPath, { recursive: true });
+                console.log(`Created ${dir} folder.`);
+            }
+
+            const defaultPath = path.join(__dirname, 'defaults', dir);
+            if (fs.existsSync(defaultPath)) {
+                const files = fs.readdirSync(defaultPath);
+                if (files.length > 0) {
+                    for (const file of files) {
+                        const src = path.join(defaultPath, file);
+                        const dest = path.join(fullPath, file);
+                        await fsp.cp(src, dest, { recursive: true });
+                    }
+                    console.log(`Copied default content for ${dir}`);
+                }
+            }
+        }
+
+        console.log("Creating required files...");
+
+        const blogConfPath = path.join(__dirname, 'blog.conf');
+        if (!fs.existsSync(blogConfPath)) {
+            const defaultConfig = {
+                blogname: "scribbledown blog",
+                footerContent: "<p>© {year}</p> <a href='https://github.com/duch3201'>shadowman</a>",
+                dev: "true",
+                arePluginsEnabled: "true",
+                currentTheme: "default"
+            };
+            fs.writeFileSync(blogConfPath, JSON.stringify(defaultConfig, null, 2), 'utf8');
+        }
+
+        const indexMdPath = path.join(__dirname, 'files', 'index.md');
+        if (!fs.existsSync(indexMdPath)) {
+            fs.writeFileSync(indexMdPath, "# Scribbledown\nWelcome, everything is fine!", 'utf8');
+        }
+
+        fs.writeFileSync(flagFile, `yep`, 'utf8');
+        console.log("Done!");
+
     } catch (err) {
-        console.error(`------\n An error occured during first time setup! \n ${err} \n------`);
+        console.error(`------\nAn error occurred during first-time setup!\n${err}\n------`);
     }
-
-
-
 }
 
 /**

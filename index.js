@@ -6,7 +6,7 @@ const cssnano = require('cssnano');
 const Terser = require('terser');
 var compression = require('compression')
 const {parseMarkdown} = require('./parser');
-const {processlinks, generateChecksum} = require('./utils');
+const {processlinks, generateChecksum, firstTimeRun} = require('./utils');
 const {pluginLoader, emitter} = require('./pluginLoader');
 
 let blogConfig
@@ -170,6 +170,11 @@ async function init() {
     console.log("scribbledown init!");
 
     try {
+
+        // check if we're running for the first time
+        if (!fs.existsSync(path.join(__dirname, '.scribbledown-pastFirstrun'))) {
+            firstTimeRun();
+        }
 
         // read and parse config
         try {

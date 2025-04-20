@@ -8,15 +8,15 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-RUN mkdir ./defaults/
-RUN mkdir ./defaults/images
+# RUN mkdir ./defaults/
+# RUN mkdir ./defaults/images
 
 # Copy application files
 COPY ./template/default/* ./defaults/template/default/
 COPY ./template/theme2/* ./defaults/template/theme2/
 COPY ./plugins/* ./defaults/plugins/
 COPY ./dracula.css ./
-COPY ./blog.conf ./defaults/
+# COPY ./blog.conf ./defaults/
 COPY ./index.js ./
 COPY ./parser.js ./
 COPY ./utils.js ./
@@ -37,10 +37,10 @@ RUN chmod -R 775 /app/builtFiles && \
     chmod 664 /app/checksums.json
 
 # add the stupid init script
-COPY init.sh /usr/local/bin/init.sh
-RUN chmod +x /usr/local/bin/init.sh
+# COPY init.sh /usr/local/bin/init.sh
+# RUN chmod +x /usr/local/bin/init.sh
 
-ENTRYPOINT ["/usr/local/bin/init.sh"]
+# ENTRYPOINT ["/usr/local/bin/init.sh"]
 
 EXPOSE 3001
 

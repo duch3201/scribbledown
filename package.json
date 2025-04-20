@@ -1,6 +1,6 @@
 {
-  "name":"scribbledown",
-  "version":"2.0.0",
+  "name": "scribbledown",
+  "version": "2.0.1",
   "description": "A lightweight Markdown-powered blogging engine thingy",
   "main": "index.js",
   "scripts": {
@@ -12,6 +12,7 @@
     "compression": "^1.7.5",
     "cssnano": "^7.0.6",
     "express": "^4.21.2",
+    "fs.promises": "^0.1.2",
     "postcss": "^8.5.1",
     "terser": "^5.37.0"
   }
