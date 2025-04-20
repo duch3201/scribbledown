@@ -33,7 +33,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Build Docker Image
-        run: docker build -t shad0wm4n/scribbledown:${{ env.IMAGE_VERSION }} . shad0wm4n/scribbledown:latest
+        run: docker build -t shad0wm4n/scribbledown:${{ env.IMAGE_VERSION }} shad0wm4n/scribbledown:latest .
 
       - name: Push Docker Image (latest)
         run: docker push shad0wm4n/scribbledown:latest
