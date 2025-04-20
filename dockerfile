@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:23-slim
 
 WORKDIR /app
 
@@ -18,6 +18,9 @@ COPY ./plugins/* ./defaults/plugins/
 COPY ./dracula.css ./
 COPY ./blog.conf ./defaults/
 COPY ./index.js ./
+COPY ./parser.js ./
+COPY ./utils.js ./
+COPY ./pluginConfigInterface.js ./
 COPY ./pluginInterface.js ./
 COPY ./pluginLoader.js ./
 
