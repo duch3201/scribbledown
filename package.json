@@ -9,7 +9,7 @@
     "gen-template": "node scripts/gen-template.js"
   },
   "dependencies": {
-    "compression": "^1.7.5",
+    "compression": "^1.8.1",
     "cssnano": "^7.0.6",
     "express": "^4.21.2",
     "fs.promises": "^0.1.2",
