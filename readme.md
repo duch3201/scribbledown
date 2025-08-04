@@ -78,10 +78,15 @@ there's also blog.conf, it looks like this:
 ```json
 {
     "blogname":"scribbledown blog",
-    "footerContent":"<p>© {year}</p> <a href='https://github.com/duch3201'>shadowman</a>",
+    "footerContent":"© {year} shadowman",
     "dev":"false",
-    "arePluginsEnabled":"false",
-    "currentTheme":"default"
+    "arePluginsEnabled":"true",
+    "currentTheme":"default",
+    "port":"3001",
+    "logging": {
+        "saveLogToFile":"true",
+        "saveLogFilePath":"./logs"
+    }
 }
 
 ```
