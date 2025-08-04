@@ -1,7 +1,9 @@
-const {pluginLoader, emitter} = require('./pluginLoader');
+const { getPluginLoader } = require('./pluginLoader');
 const {calculateReadingTime} = require('./utils');
 
 async function parseMarkdown(markdown) {
+    const pluginLoader = getPluginLoader();
+    
     try {
         markdown = await pluginLoader.executeHook('beforeParse', markdown);
     } catch (error) {

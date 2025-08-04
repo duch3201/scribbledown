@@ -1,13 +1,14 @@
-const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const Terser = require('terser');
 const postcss = require('postcss');
 const cssnano = require('cssnano');
-const Terser = require('terser');
+const express = require('express');
+const Logger = require('./logger');
 var compression = require('compression')
 const {parseMarkdown} = require('./parser');
+const {createPluginLoader, emitter} = require('./pluginLoader');
 const {processlinks, generateChecksum, firstTimeRun} = require('./utils');
-const {pluginLoader, emitter} = require('./pluginLoader');
 
 let blogConfig
 let isAppModeDev;
@@ -16,14 +17,15 @@ let currentTheme;
 let arePluginsEnabled;
 let currentThemeConfig;
 let processedLinks
-
+var logger;
+let pluginLoader;
 
 const app = express();
 app.use(express.json());
 app.use(compression());
 app.use((req, res, next) => {
-    // console.log(req)
-    console.log(`New ${req.method} request | ${req.url} | ${new Date().toISOString()} | ${req.ip} | ${req.get('User-Agent')}`);
+    // logger.info(req)
+    logger.info(`New ${req.method} request | ${req.url} | ${new Date().toISOString()} | ${req.ip} | ${req.get('User-Agent')}`);
     next();
 });
 
@@ -41,7 +43,7 @@ async function build(fileName) {
     if (fileName) {
         let fileToBuild;
         try {
-            console.log(`Rebuilding ${fileName}`);
+            logger.info(`Rebuilding ${fileName}`);
             if (fileName.split('/').length > 1) {
                 fileToBuild = fs.readFileSync(path.join(__dirname, 'files', fileName[0], fileName[1]), 'utf8');
             } else {
@@ -62,7 +64,7 @@ async function build(fileName) {
             checksums[fileName] = generateChecksum(fileToBuild);
             fs.writeFileSync(path.join(__dirname, 'checksums.json'), JSON.stringify(checksums, null, 4));
 
-            console.log(`Rebuilding ${fileName} success`);
+            logger.info(`Rebuilding ${fileName} success`);
             return;
 
         } catch (error) {
@@ -79,7 +81,7 @@ async function build(fileName) {
         console.error(error.message);
         // throw error;
     }
-    console.log('Building files...');
+    logger.info('Building files...');
     const HTMLtemplate = await fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
     let fileContent;
     let checksums = {};
@@ -89,7 +91,7 @@ async function build(fileName) {
 
     isAppModeDev = false;
     if (fs.existsSync(path.join(__dirname, 'builtFiles'))) {
-        console.log('found previous build, rebuilding');
+        logger.info('found previous build, rebuilding');
         fs.rmdirSync(path.join(__dirname, 'builtFiles'), { recursive: true });
     }
     fs.mkdirSync(path.join(__dirname, 'builtFiles'), { recursive: true });
@@ -101,7 +103,7 @@ async function build(fileName) {
 
         if (fileName.endsWith('.md')) {
 
-            console.log(`[build]: Building ${fileName}`);
+            logger.info(`[build]: Building ${fileName}`);
 
             fileContent = await fs.readFileSync(path.join(__dirname, 'files', fileName), 'utf8');
             const {content, frontmatter} = await parseMarkdown(fileContent);
@@ -110,7 +112,7 @@ async function build(fileName) {
             fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName.replace('.md', '.html')), builtPage);
             checksums[fileName] = generateChecksum(fileContent);
 
-            console.log(`[build]: Building ${fileName} success`);
+            logger.info(`[build]: Building ${fileName} success`);
 
         } else if (stats.isDirectory()) {
 
@@ -120,7 +122,7 @@ async function build(fileName) {
             for (const subfile of subfiles) {
                 if (subfile.endsWith('.md')) {
 
-                    console.log(`[build]: Building ${fileName}/${subfile}`);
+                    logger.info(`[build]: Building ${fileName}/${subfile}`);
 
                     fileContent = await fs.readFileSync(path.join(__dirname, 'files', fileName, subfile), 'utf8');
                     const {content, frontmatter} = await parseMarkdown(fileContent);
@@ -129,7 +131,7 @@ async function build(fileName) {
                     fs.writeFileSync(path.join(__dirname, 'builtFiles', fileName, subfile.replace('.md', '.html')), builtPage);
                     checksums[`${fileName}/${subfile}`] = generateChecksum(fileContent);
 
-                    console.log(`[build]: Building ${fileName} success`);
+                    logger.info(`[build]: Building ${fileName} success`);
                 }
             }
         }
@@ -145,9 +147,9 @@ async function build(fileName) {
     checksums['config'] = generateChecksum(JSON.stringify(blogConfig));
 
     // Save checksums after all files are processed
-    console.log('Saving checksums...');
+    logger.info('Saving checksums...');
     fs.writeFileSync(path.join(__dirname, 'checksums.json'), JSON.stringify(checksums, null, 4));
-    console.log('Build complete!');
+    logger.info('Build complete!');
     try {
         await pluginLoader.executeHook('afterBuild');   
     } catch (error) {
@@ -189,16 +191,38 @@ async function init() {
                     footerContent: '© {year} scribbledown.',
                     dev: 'false',
                     arePluginsEnabled: 'false',
-                    currentTheme: 'default'
+                    currentTheme: 'default',
+                    port: '3001',
+                    logging: {
+                        saveLogToFile:'false',
+                        saveLogFilePath:''
+                    }
                 };
                 fs.writeFileSync(path.join(__dirname, 'blog.conf'), JSON.stringify(blogConfig, null, 4));
                 blogConfig = fs.readFileSync(path.join(__dirname, 'blog.conf'), 'utf8');
             }
             blogConfig = JSON.parse(blogConfig);
             currentTheme = blogConfig.currentTheme;
+
+            if (blogConfig.port === undefined || blogConfig.port == "" || blogConfig.port == NaN) {
+                blogConfig.port = 3001
+                console.warn("===\nPort not set, continuing with 3001.\nplease set a port in the blog.conf\n===")
+            }
+
         } catch (error) {
             console.error('---------\nError reading blog.conf:', error);
             throw error;
+        }
+
+        // start the logger
+        try {
+            logger = new Logger({
+                isDebug:blogConfig.dev,
+                logPath:blogConfig.logging.saveLogFilePath,
+                logToFile:blogConfig.logging.saveLogToFile
+            })
+        } catch (error) {
+            console.log(error)
         }
 
         try {
@@ -209,20 +233,22 @@ async function init() {
             console.warn(`will not be able to display theme's name and author\n----------`)
         }
 
+        logger.info("hgc")
+        
         const date = new Date();
         const formattedDate = `${date.getDate()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
         // check if the files directory is empty
         if (fs.existsSync(path.join(__dirname, 'files'))) {
             const files = fs.readdirSync(path.join(__dirname, 'files'));
             if (files.length === 0) {
-                console.log('Files directory is empty!\nAssuming first run!');
+                logger.info('Files directory is empty!\nAssuming first run!');
                 fs.writeFileSync(path.join(__dirname, 'files', 'index.md'), `---\ntitle: Welcome to scribbledown\ndate:${formattedDate}\n---\n# Welcome to scribbledown\n\nIf you're reading this. Welcome, everything is fine.`);
                 fs.writeFileSync(path.join(__dirname, 'files', 'welcome.md'), `---\ntitle: Welcome to scribbledown v2\ndate:${formattedDate}\n---\n# Welcome\n\n[shadowman](https://github.com/duch3201) here, welcome to scribbledown, thanks for checking it out.\n\nThis is a really cool blogging engine thingy and im so happy you decided to check it out, have fun creating templates or just writing your blog!`);
             }
         }
 
         // check the template directory
-        console.log("Checking template directory");
+        logger.info("Checking template directory");
         if (fs.existsSync(path.join(__dirname, 'template'))) {
             const templateFiles = fs.readdirSync(path.join(__dirname, 'template'));
             if (templateFiles.length === 0) {
@@ -232,7 +258,7 @@ async function init() {
         }
 
         // see if the checksums.json file exists if it does check every file in the files directory
-        console.log("Checking checksums.json");
+        logger.info("Checking checksums.json");
         try {
             if (!fs.existsSync(path.join(__dirname, 'checksums.json'))) {
                 fs.writeFileSync(path.join(__dirname, 'checksums.json'), JSON.stringify({}));
@@ -243,7 +269,7 @@ async function init() {
 
             // Check if the checksums file is empty
             if (checksums === null || Object.keys(checksums).length === 0) {
-                console.log('Checksums file is empty!');
+                logger.info('Checksums file is empty!');
                 build();
             }
 
@@ -257,7 +283,7 @@ async function init() {
                     const fileContent = fs.readFileSync(path.join(__dirname, 'files', fileName), 'utf8');
                     const currentChecksum = generateChecksum(fileContent);
                     if (!checksums[fileName] || checksums[fileName] !== currentChecksum) {
-                        console.log(`File ${fileName} has changed`);
+                        logger.info(`File ${fileName} has changed`);
                         rebuild = true;
                     }
                 } else if (stats.isDirectory()) {
@@ -268,7 +294,7 @@ async function init() {
                             const currentChecksum = generateChecksum(fileContent);
                             const filePath = `${fileName}/${subfile}`;
                             if (!checksums[filePath] || checksums[filePath] !== currentChecksum) {
-                                console.log(`File ${filePath} has changed`);
+                                logger.info(`File ${filePath} has changed`);
                                 rebuild = true;
                             }
                         }
@@ -277,34 +303,34 @@ async function init() {
             });
 
             // check if the template, css or js files have changed
-            console.log('Checking template, CSS, and JS files');
+            logger.info('Checking template, CSS, and JS files'); // could turn the fs.readFileSyncs below to a helper function that retursn three variables, HTMLTemplate, css, js
             const HTMLtemplate = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.html'), 'utf8');
             const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
             const js = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'app.js'), 'utf8');
             const currentChecksum = generateChecksum(HTMLtemplate + css + js);
             if (!checksums['template'] || checksums['template'] !== currentChecksum) {
-                console.log('Template, CSS, or JS files have changed');
+                logger.info('Template, CSS, or JS files have changed');
                 rebuild = true;
             } else {
-                console.log('Template, CSS, and JS files are unchanged');
+                logger.info('Template, CSS, and JS files are unchanged');
             }
 
             // check if the config file has changed
-            console.log('Checking config file for changes');
+            logger.info('Checking config file for changes');
             const configChecksum = generateChecksum(JSON.stringify(blogConfig));
             if (!checksums['config'] || checksums['config'] !== configChecksum) {
-                console.log('Config file has changed');
+                logger.info('Config file has changed');
                 rebuild = true;
             } else {
-                console.log('Config file is unchanged');
+                logger.info('Config file is unchanged');
             }
 
         } catch (error) {
             console.error('----------\nError reading checksums.json:', error);
             rebuild = true;
         }
+
         // check if plugins are enabled
-        console.log(blogConfig.arePluginsEnabled)
         if (blogConfig.arePluginsEnabled === 'true') {
             arePluginsEnabled = true;
         } else {
@@ -312,22 +338,20 @@ async function init() {
         }
 
         if (arePluginsEnabled) {
-            console.log("kurwa")
             try {
-                console.log('Loading plugins...');
+                logger.info('Loading plugins...');
+                pluginLoader = createPluginLoader(logger);
                 await pluginLoader.loadPlugins();
                 
                 const shouldRebuild = await pluginLoader.executeHook('invokeRebuild');
                 if (shouldRebuild) {
-                    console.log('Rebuild requested by plugin');
+                    logger.info('Rebuild requested by plugin');
                     rebuild = true;
                 }
             } catch (error) {
                 console.error(`--------\nError loading plugins\n${error}`);
                 throw error;
             }
-        } else {
-            console.log("not kurwa")
         }
             
         if (blogConfig.dev === 'true') {
@@ -351,19 +375,19 @@ async function init() {
 
 async function yeettotemplate(template, content, frontmatter, processedLinks) {
     try {
-        // console.log(frontmatter)
+        // logger.info(frontmatter)
         const [newTemplate, newContent, newFrontmatter] = await pluginLoader.executeHook('beforeTemplate', template, content, frontmatter);
         template = newTemplate;
         content = newContent;
         frontmatter = newFrontmatter;
-        // console.log('\n\n[yettotemplate (beforeTemplate Hook)]: \n',newTemplate)
+        // logger.info('\n\n[yettotemplate (beforeTemplate Hook)]: \n',newTemplate)
     } catch (error) {
         console.error('----------');
         console.error(error);
         // throw error;
     }
 
-    // console.log("lollll  "+JSON.stringify(processedLinks))
+    // logger.info("lollll  "+JSON.stringify(processedLinks))
 
     const hightlightjstheme = fs.readFileSync(path.join(__dirname, 'dracula.css'), 'utf-8');
     const css = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'index.css'), 'utf8');
@@ -418,14 +442,14 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
     // template = template.replace('<script>', '<script>let linksArray = ' + JSON.stringify(processedLinks) + ';');
     // template = template.replace('<script>', '<script>let frontmatter = ' + JSON.stringify(frontmatter) + ';');
 
-    // console.log("[yettotemplate]: ",template)
+    // logger.info("[yettotemplate]: ",template)
 
     try {
-        // console.log(processedLinks)
+        // logger.info(processedLinks)
         const processedLinksl = processedLinks;
         const [newNewTemplate] = await pluginLoader.executeHook('afterTemplate', template, content, frontmatter, processedLinksl);
         template = newNewTemplate;
-        // console.log("\n\n[yettotemplate (afterTemplate Hook)]: ",newNewTemplate)
+        // logger.info("\n\n[yettotemplate (afterTemplate Hook)]: ",newNewTemplate)
     } catch (error) {
         console.error('----------');
         console.error(error.message);
@@ -437,7 +461,7 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
 
 
 emitter.on('rebuild', data => {
-    console.log(data);
+    logger.info(data);
     build(data);
 });
 
@@ -465,7 +489,7 @@ app.get('/', async (req, res) => {
             let linksArray = {"/":[]};
             processedLinks = processlinks(linksArray);
 
-            // console.log(frontmatter)
+            // logger.info(frontmatter)
 
             res.send(await yeettotemplate(template, content, frontmatter, processedLinks));
         } catch (error) {
@@ -498,7 +522,7 @@ app.get('/*', async (req, res) => {
             if (e instanceof Error && e.code === 'ENOENT') {
                 res.status(404).send('404 | File not found.');
             } else {
-                console.log(e)
+                logger.info(e)
                 res.status(500).send('Error reading the file.');
             }
             // res.status(404).send('File not found.');
@@ -511,8 +535,11 @@ app.get('/*', async (req, res) => {
 
 
 // Start server
-const PORT = 3001;
-app.listen(PORT, '0.0.0.0', () => {
-    init();
-    console.log(`Server is running on port ${PORT}`);
-});
+(async function main() {
+    await init();
+    const PORT = parseInt(3001);
+    app.listen(PORT, '0.0.0.0', () => {
+        logger.info(`\n====\nServer is running on port http://0.0.0.0:${PORT}\n===`);
+    });
+})();
+// logger.close()

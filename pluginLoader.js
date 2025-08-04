@@ -3,8 +3,11 @@ const path = require('path');
 const EventEmitter = require('events');
 const emitter = new EventEmitter();
 
+let pluginLoaderInstance = null;
+
 class PluginLoader {
-    constructor() {
+    constructor(logger) {
+        this.logger = logger
         this.plugins = new Map();
         this.hooks = {
             beforeBuild: [],
@@ -26,14 +29,14 @@ class PluginLoader {
             if (plugin.endsWith('.js')) {
                 const pluginPath = path.join(pluginDir, plugin);
                 const Plugin = require(pluginPath);
-                console.log(`[PluginLoader]: Loading plugin ${plugin}`);
+                this.logger.info(`[PluginLoader]: Loading plugin ${plugin}`);
                 const pluginInstance = new Plugin();
                 this.plugins.set(pluginInstance.name, pluginInstance);
 
                 Object.keys(pluginInstance.hooks).forEach(hookName => {
                     if (pluginInstance.hooks[hookName].length > 0) {
                         this.hooks[hookName].push(...pluginInstance.hooks[hookName]);
-                        console.log(`[PluginLoader]: Registered ${pluginInstance.name} for ${hookName}`);
+                        this.logger.info(`[PluginLoader]: Registered ${pluginInstance.name} for ${hookName}`);
                     }
                 });
 
@@ -87,14 +90,33 @@ class PluginLoader {
     async runBuild(file) {
         console.log("test")
         if (!file) {
-            console.log(`a plugin triggered a rebuild of all files`);
+            this.logger.info(`a plugin triggered a rebuild of all files`);
             emitter.emit('rebuild')
         } else {
-            console.log(`a plugin triggered a rebuild`)
+            this.logger.info(`a plugin triggered a rebuild`)
             emitter.emit('rebuild', file)
         }
     }
 
+    
 }
-const pluginLoader = new PluginLoader()
-module.exports = {pluginLoader, emitter};
+
+//having this here feels like a hack, but it will work for now. 
+// ngl the codebase is kinda becoming a mess, things just ducktaped to the side of the original idea. 
+// im gonna have to rewrite the whole thing pretty sure
+// this time with a set amount of features, and i won't add any additional just randomly, i'll actually thing stuff through
+function createPluginLoader(logger) {
+    if (!pluginLoaderInstance) {
+        pluginLoaderInstance = new PluginLoader(logger);
+    }
+    return pluginLoaderInstance;
+}
+
+function getPluginLoader() {
+    if (!pluginLoaderInstance) {
+        throw new Error('PluginLoader not initialized! Call createPluginLoader(logger) first.');
+    }
+    return pluginLoaderInstance;
+}
+
+module.exports = { createPluginLoader, getPluginLoader, emitter };
