@@ -27,6 +27,7 @@ COPY ./utils.js ./
 COPY ./pluginConfigInterface.js ./
 COPY ./pluginInterface.js ./
 COPY ./pluginLoader.js ./
+COPY ./logger.js ./
 
 RUN ls ./
 RUN ls ./defaults
