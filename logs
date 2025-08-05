@@ -114,3 +114,59 @@ Server is running on port http://0.0.0.0:3001
 ====
 Server is running on port http://0.0.0.0:3001
 === at Server.<anonymous> (/Users/krzysztof/scribbledown/index.js:542:16)
+[2025-08-05T19:52:44.170Z] [INFO] hgc at init (/Users/krzysztof/scribbledown/index.js:236:16)
+[2025-08-05T19:52:44.174Z] [INFO] Checking template directory at init (/Users/krzysztof/scribbledown/index.js:251:16)
+[2025-08-05T19:52:44.174Z] [INFO] Checking checksums.json at init (/Users/krzysztof/scribbledown/index.js:261:16)
+[2025-08-05T19:52:44.176Z] [INFO] Checking template, CSS, and JS files at init (/Users/krzysztof/scribbledown/index.js:306:20)
+[2025-08-05T19:52:44.176Z] [INFO] Template, CSS, and JS files are unchanged at init (/Users/krzysztof/scribbledown/index.js:315:24)
+[2025-08-05T19:52:44.176Z] [INFO] Checking config file for changes at init (/Users/krzysztof/scribbledown/index.js:319:20)
+[2025-08-05T19:52:44.177Z] [INFO] Config file is unchanged at init (/Users/krzysztof/scribbledown/index.js:325:24)
+[2025-08-05T19:52:44.177Z] [INFO] Loading plugins... at init (/Users/krzysztof/scribbledown/index.js:342:24)
+[2025-08-05T19:52:44.178Z] [INFO] [PluginLoader]: Loading plugin defaultThemePlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-05T19:52:44.178Z] [INFO] [PluginLoader]: Registered defaultTheme for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-05T19:52:44.178Z] [INFO] [PluginLoader]: Registered defaultTheme for afterTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-05T19:52:44.179Z] [INFO] [PluginLoader]: Loading plugin emojiPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-05T19:52:44.179Z] [INFO] [PluginLoader]: Registered emojiPlugin for beforeParse at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-05T19:52:44.179Z] [INFO] [PluginLoader]: Loading plugin testPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-05T19:52:44.179Z] [INFO] [PluginLoader]: Registered my-cool-plugin for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-05T19:52:44.180Z] [INFO] Rebuild requested by plugin at init (/Users/krzysztof/scribbledown/index.js:348:28)
+[2025-08-05T19:52:44.180Z] [INFO] Building files... at build (/Users/krzysztof/scribbledown/index.js:84:12)
+[2025-08-05T19:52:44.183Z] [INFO] found previous build, rebuilding at build (/Users/krzysztof/scribbledown/index.js:94:16)
+[2025-08-05T19:52:44.184Z] [INFO] [build]: Building 2.1.6v.md at build (/Users/krzysztof/scribbledown/index.js:106:20)
+[2025-08-05T19:52:44.631Z] [INFO] [build]: Building 2.1.6v.md success at build (/Users/krzysztof/scribbledown/index.js:115:20)
+[2025-08-05T19:52:44.632Z] [INFO] [build]: Building index.md at build (/Users/krzysztof/scribbledown/index.js:106:20)
+[2025-08-05T19:52:44.651Z] [INFO] [build]: Building index.md success at build (/Users/krzysztof/scribbledown/index.js:115:20)
+[2025-08-05T19:52:44.651Z] [INFO] Saving checksums... at build (/Users/krzysztof/scribbledown/index.js:150:12)
+[2025-08-05T19:52:44.651Z] [INFO] Build complete! at build (/Users/krzysztof/scribbledown/index.js:152:12)
+[2025-08-05T19:52:44.657Z] [INFO] 
+====
+Server is running on port http://0.0.0.0:3001
+=== at Server.<anonymous> (/Users/krzysztof/scribbledown/index.js:542:16)
+[2025-08-05T19:53:02.119Z] [INFO] hgc at init (/Users/krzysztof/scribbledown/index.js:236:16)
+[2025-08-05T19:53:02.120Z] [INFO] Checking template directory at init (/Users/krzysztof/scribbledown/index.js:251:16)
+[2025-08-05T19:53:02.120Z] [INFO] Checking checksums.json at init (/Users/krzysztof/scribbledown/index.js:261:16)
+[2025-08-05T19:53:02.121Z] [INFO] Checking template, CSS, and JS files at init (/Users/krzysztof/scribbledown/index.js:306:20)
+[2025-08-05T19:53:02.121Z] [INFO] Template, CSS, and JS files are unchanged at init (/Users/krzysztof/scribbledown/index.js:315:24)
+[2025-08-05T19:53:02.121Z] [INFO] Checking config file for changes at init (/Users/krzysztof/scribbledown/index.js:319:20)
+[2025-08-05T19:53:02.121Z] [INFO] Config file has changed at init (/Users/krzysztof/scribbledown/index.js:322:24)
+[2025-08-05T19:53:02.121Z] [INFO] Loading plugins... at init (/Users/krzysztof/scribbledown/index.js:342:24)
+[2025-08-05T19:53:02.123Z] [INFO] [PluginLoader]: Loading plugin defaultThemePlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-05T19:53:02.123Z] [INFO] [PluginLoader]: Registered defaultTheme for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-05T19:53:02.123Z] [INFO] [PluginLoader]: Registered defaultTheme for afterTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-05T19:53:02.124Z] [INFO] [PluginLoader]: Loading plugin emojiPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-05T19:53:02.124Z] [INFO] [PluginLoader]: Registered emojiPlugin for beforeParse at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-05T19:53:02.124Z] [INFO] [PluginLoader]: Loading plugin testPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-05T19:53:02.124Z] [INFO] [PluginLoader]: Registered my-cool-plugin for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-05T19:53:02.125Z] [INFO] Rebuild requested by plugin at init (/Users/krzysztof/scribbledown/index.js:348:28)
+[2025-08-05T19:53:02.125Z] [INFO] Building files... at build (/Users/krzysztof/scribbledown/index.js:84:12)
+[2025-08-05T19:53:02.127Z] [INFO] found previous build, rebuilding at build (/Users/krzysztof/scribbledown/index.js:94:16)
+[2025-08-05T19:53:02.127Z] [INFO] [build]: Building 2.1.6v.md at build (/Users/krzysztof/scribbledown/index.js:106:20)
+[2025-08-05T19:53:02.463Z] [INFO] [build]: Building 2.1.6v.md success at build (/Users/krzysztof/scribbledown/index.js:115:20)
+[2025-08-05T19:53:02.463Z] [INFO] [build]: Building index.md at build (/Users/krzysztof/scribbledown/index.js:106:20)
+[2025-08-05T19:53:02.483Z] [INFO] [build]: Building index.md success at build (/Users/krzysztof/scribbledown/index.js:115:20)
+[2025-08-05T19:53:02.483Z] [INFO] Saving checksums... at build (/Users/krzysztof/scribbledown/index.js:150:12)
+[2025-08-05T19:53:02.483Z] [INFO] Build complete! at build (/Users/krzysztof/scribbledown/index.js:152:12)
+[2025-08-05T19:53:02.489Z] [INFO] 
+====
+Server is running on port http://0.0.0.0:3002
+=== at Server.<anonymous> (/Users/krzysztof/scribbledown/index.js:542:16)

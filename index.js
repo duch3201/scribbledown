@@ -537,7 +537,7 @@ app.get('/*', async (req, res) => {
 // Start server
 (async function main() {
     await init();
-    const PORT = parseInt(3001);
+    const PORT = parseInt(blogConfig.port);
     app.listen(PORT, '0.0.0.0', () => {
         logger.info(`\n====\nServer is running on port http://0.0.0.0:${PORT}\n===`);
     });
