@@ -1,5 +1,5 @@
 const { getPluginLoader } = require('./pluginLoader');
-const {calculateReadingTime} = require('./utils');
+const {calculateReadingTime, escapeHtml} = require('./utils');
 
 async function parseMarkdown(markdown) {
     const pluginLoader = getPluginLoader();
@@ -153,12 +153,12 @@ async function parseMarkdown(markdown) {
     // Restore code blocks
     processedContent = processedContent.replace(/%%INLINECODE\d+%%/g, match => {
         const block = codeBlocks.get(match);
-        return `<code class="inline">${block.code}</code>`;
+        return `<code class="inline">${escapeHtml(block.code)}</code>`;
     });
 
     processedContent = processedContent.replace(/%%CODEBLOCK\d+%%/g, match => {
         const block = codeBlocks.get(match);
-        return `<pre><code class="language-${block.language}">${block.code}</code></pre>`;
+        return `<pre><code class="language-${block.language}">${escapeHtml(block.code)}</code></pre>`;
     });
 
     const readingTime = calculateReadingTime(processedContent);

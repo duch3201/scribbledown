@@ -502,8 +502,17 @@ app.get('/', async (req, res) => {
 
 });
 
+// v2.2.0: fix path traversal (oops, sorry!)
 app.get('/image/*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'images', req.params[0]));
+    const safeBase = path.join(__dirname, 'public', 'images');
+    const requestedPath = path.normalize(path.join(safeBase, req.params[0]));
+    if (!requestedPath.startsWith(safeBase)) {
+        return res.status(400).send('Invalid path');
+    }
+    fs.readFile(requestedPath, (err, data) => {
+        if (err) return res.status(404).send('Not found');
+        res.send(data);
+    });
 });
 
 app.get('/*', async (req, res) => {

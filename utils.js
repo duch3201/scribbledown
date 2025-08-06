@@ -128,9 +128,14 @@ function scanPlugins() {
     return
 }
  
+function escapeHtml(str) {
+    return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 module.exports = {
     processlinks,
     generateChecksum,
     calculateReadingTime,
-    firstTimeRun
+    firstTimeRun,
+    escapeHtml
 };
