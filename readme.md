@@ -1,6 +1,14 @@
 # scribbledown
 a lightweight Markdown-powered blogging engine thingy
 
+
+>[!CAUTION]
+>Versions of Scribbledown prior to v2.2.0 are vulnerable to XSS and path traversal attacks.
+>Please upgrade to v2.2.0 or later immediately if you're running an older version.
+>
+>These issues have been fully patched in v2.2.0. See the [release notes](https://scribbledown.chrisdev.pl/release%20notes/v2.2.0) for details.
+
+
 Built over two days as a fun side project, it’s not overly complicated under the hood but gets the job done! i won't lie i had a lot of fun building this
 it's pretty modular id say, the frontend is kinda just the index.html, index.css and app.js files, you can replace those for your own files as long as the html file will have the template strings
 
