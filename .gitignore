@@ -5,5 +5,3 @@ images/
 checksums.json
 plugins/pluginData
 -i
-blog.conf
-logs
