@@ -68,8 +68,7 @@ async function build(fileName) {
             return;
 
         } catch (error) {
-            console.error('----------');
-            console.error(error.message);
+            logger.error(`----------\n${error}`);
             throw error;
         }
 
@@ -77,8 +76,7 @@ async function build(fileName) {
     try {
         await pluginLoader.executeHook('beforeBuild');
     } catch (error) {
-        console.error('----------');
-        console.error(error.message);
+            logger.error(`----------\n${error}`);
         // throw error;
     }
     logger.info('Building files...');
@@ -153,8 +151,7 @@ async function build(fileName) {
     try {
         await pluginLoader.executeHook('afterBuild');   
     } catch (error) {
-        console.error('----------');
-        console.error(error.message);
+            logger.error(`----------\n${error}`);
         // throw error;
     }
 
@@ -185,7 +182,7 @@ async function init() {
             const configstat = fs.statSync(path.join(__dirname, 'blog.conf'));
             if (configstat.size === 0) {
                 console.log("Config file is empty!");
-                console.error('writing defaults to blog.conf');
+                logger.warn('writing defaults to blog.conf');
                 blogConfig = {
                     blogname: 'scribbledown blog',
                     footerContent: '© {year} scribbledown.',
@@ -206,11 +203,11 @@ async function init() {
 
             if (blogConfig.port === undefined || blogConfig.port == "" || blogConfig.port == NaN) {
                 blogConfig.port = 3001
-                console.warn("===\nPort not set, continuing with 3001.\nplease set a port in the blog.conf\n===")
+                logger.warn("===\nPort not set, continuing with 3001.\nplease set a port in the blog.conf\n===")
             }
 
         } catch (error) {
-            console.error('---------\nError reading blog.conf:', error);
+            logger.error('---------\nError reading blog.conf:', error);
             throw error;
         }
 
@@ -229,8 +226,7 @@ async function init() {
             const themeConfig = fs.readFileSync(path.join(__dirname, 'template', currentTheme, 'config.json'), 'utf8');
             currentThemeConfig = JSON.parse(themeConfig);
         } catch (error) {
-            console.warn('---------\nError reading theme config:\n', error);
-            console.warn(`will not be able to display theme's name and author\n----------`)
+            logger.warn(`---------\nError reading theme config:\n${error} \nwill not be able to display theme's name and author\n----------`)
         }
 
         logger.info("hgc")
@@ -252,7 +248,7 @@ async function init() {
         if (fs.existsSync(path.join(__dirname, 'template'))) {
             const templateFiles = fs.readdirSync(path.join(__dirname, 'template'));
             if (templateFiles.length === 0) {
-                console.error("----------\nTemplate directory is empty!");
+                logger.error("----------\nTemplate directory is empty!");
                 throw new Error('Template directory is empty!');
             }
         }
@@ -326,7 +322,7 @@ async function init() {
             }
 
         } catch (error) {
-            console.error('----------\nError reading checksums.json:', error);
+            logger.error('----------\nError reading checksums.json:', error);
             rebuild = true;
         }
 
@@ -349,13 +345,13 @@ async function init() {
                     rebuild = true;
                 }
             } catch (error) {
-                console.error(`--------\nError loading plugins\n${error}`);
+                logger.error(`--------\nError loading plugins\n${error}`);
                 throw error;
             }
         }
             
         if (blogConfig.dev === 'true') {
-            console.warn("Running in dev mode!!");
+            logger.warn("Running in dev mode!!");
             isAppModeDev = true;
         } else if (rebuild) {
             build();
@@ -366,7 +362,7 @@ async function init() {
 
 
     } catch (error) {
-        console.error('Error in init:', error);
+        logger.error('Error in init:', error);
         throw error;
     }
 }
@@ -382,8 +378,7 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
         frontmatter = newFrontmatter;
         // logger.info('\n\n[yettotemplate (beforeTemplate Hook)]: \n',newTemplate)
     } catch (error) {
-        console.error('----------');
-        console.error(error);
+        logger.error(`----------\n${error}`);
         // throw error;
     }
 
@@ -404,7 +399,7 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
             const jsResult = await Terser.minify(js);
             template = template.replace("</body>", `</body><script>${jsResult.code}</script></body>`);
         } catch (error) {
-            console.error('----------\nError in yeettotemplate:', error);
+            logger.error('----------\nError in yeettotemplate:', error);
             throw error;
         }
     } else {
@@ -424,13 +419,13 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
     content = content.replace(/---[\s\S]*?---/, "")
     // Add validation checks
     if (!template.includes('{BLOGNAME}')) {
-        console.error('Template is missing {BLOGNAME} placeholder');
+        logger.error('Template is missing {BLOGNAME} placeholder');
     }
     if (!template.includes('{PAGECONTENT}')) {
-        console.error('Template is missing {PAGECONTENT} placeholder');
+        logger.error('Template is missing {PAGECONTENT} placeholder');
     }
     if (!blogConfig.blogname) {
-        console.error('blogConfig.blogname is undefined');
+        logger.error('blogConfig.blogname is undefined');
     }
 
     template = template.replace('{PAGECONTENT}', content);
@@ -451,8 +446,7 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
         template = newNewTemplate;
         // logger.info("\n\n[yettotemplate (afterTemplate Hook)]: ",newNewTemplate)
     } catch (error) {
-        console.error('----------');
-        console.error(error.message);
+        logger.error(`----------\n${error}`);
         // throw error;
     }
     return template
@@ -493,7 +487,7 @@ app.get('/', async (req, res) => {
 
             res.send(await yeettotemplate(template, content, frontmatter, processedLinks));
         } catch (error) {
-            console.error('Error in / route:', error);
+            logger.error('Error in / route:', error);
             res.status(500).send('Error reading the file.');
         } 
     } else {

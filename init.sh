@@ -21,9 +21,9 @@ for dir in template files images plugins; do
   fi
 done
 
-if [ ! -f /app/blog.conf ]; then
-  echo "Initializing /app/blog.conf with default configuration..."
-  cp /app/defaults/blog.conf /app/blog.conf
-fi
+# if [ ! -f /app/blog.conf ]; then
+#   echo "Initializing /app/blog.conf with default configuration..."
+#   cp /app/defaults/blog.conf /app/blog.conf
+# fi
 
 exec "$@"
