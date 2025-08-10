@@ -20,7 +20,6 @@ COPY ./template/default ./defaults/template/default
 COPY ./template/theme2 ./defaults/template/theme2
 COPY ./plugins ./defaults/plugins
 COPY ./dracula.css ./
-COPY ./blog.conf ./defaults/
 COPY ./index.js ./
 COPY ./parser.js ./
 COPY ./utils.js ./
