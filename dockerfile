@@ -41,7 +41,6 @@ RUN mkdir -p /app/builtFiles /app/files && \
 # Set permissions for the app directory and files directory
 RUN chmod -R 775 /app/builtFiles && \
     chmod -R 775 /app/files && \
-    chmod 664 /app/defaults/blog.conf && \
     chmod 664 /app/checksums.json
 
 # add the stupid init script
