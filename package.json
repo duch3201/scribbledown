@@ -14,6 +14,7 @@
     "express": "^4.21.2",
     "fs.promises": "^0.1.2",
     "postcss": "^8.5.1",
+    "sanitize-html": "^2.17.0",
     "terser": "^5.37.0"
   }
 }

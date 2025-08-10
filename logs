@@ -477,3 +477,144 @@ Server is running on port http://0.0.0.0:3002
 Server is running on port http://0.0.0.0:3002
 === at Server.<anonymous> (/Users/krzysztof/scribbledown/index.js:550:16)
 [2025-08-06T21:33:22.174Z] [INFO] New GET request | /v2.2.0 | 2025-08-06T21:33:22.174Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:43:55.708Z] [INFO] hgc at init (/Users/krzysztof/scribbledown/index.js:244:16)
+[2025-08-09T18:43:55.708Z] [INFO] {"blogname":"scribbledown blog","footerContent":"<p>© {year}</p> <a href='https://github.com/duch3201'>shadowman</a>","dev":"false","arePluginsEnabled":"true","currentTheme":"default","port":"3002","logging":{"saveLogToFile":"true","saveLogFilePath":"./logs"}} at init (/Users/krzysztof/scribbledown/index.js:245:16)
+[2025-08-09T18:43:55.708Z] [INFO] Plugins are enabled! at init (/Users/krzysztof/scribbledown/index.js:248:20)
+[2025-08-09T18:43:55.708Z] [INFO] Loading plugins... at init (/Users/krzysztof/scribbledown/index.js:255:24)
+[2025-08-09T18:43:55.708Z] [INFO] [object Object] at init (/Users/krzysztof/scribbledown/index.js:257:24)
+[2025-08-09T18:43:55.710Z] [INFO] [PluginLoader]: Loading plugin defaultThemePlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-09T18:43:55.710Z] [INFO] [PluginLoader]: Registered defaultTheme for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-09T18:43:55.710Z] [INFO] [PluginLoader]: Registered defaultTheme for afterTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-09T18:43:55.711Z] [INFO] [PluginLoader]: Loading plugin emojiPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-09T18:43:55.711Z] [INFO] [PluginLoader]: Registered emojiPlugin for beforeParse at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-09T18:43:55.711Z] [INFO] [PluginLoader]: Loading plugin testPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-09T18:43:55.711Z] [INFO] [PluginLoader]: Registered my-cool-plugin for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-09T18:43:55.712Z] [INFO] Rebuild requested by plugin at init (/Users/krzysztof/scribbledown/index.js:262:28)
+[2025-08-09T18:43:55.712Z] [INFO] Checking template directory at init (/Users/krzysztof/scribbledown/index.js:284:16)
+[2025-08-09T18:43:55.712Z] [INFO] Checking checksums.json at init (/Users/krzysztof/scribbledown/index.js:294:16)
+[2025-08-09T18:43:55.713Z] [INFO] File v2.2.1.md has changed at /Users/krzysztof/scribbledown/index.js:319:32
+[2025-08-09T18:43:55.713Z] [INFO] Checking template, CSS, and JS files at init (/Users/krzysztof/scribbledown/index.js:339:20)
+[2025-08-09T18:43:55.713Z] [INFO] Template, CSS, or JS files have changed at init (/Users/krzysztof/scribbledown/index.js:345:24)
+[2025-08-09T18:43:55.713Z] [INFO] Checking config file for changes at init (/Users/krzysztof/scribbledown/index.js:352:20)
+[2025-08-09T18:43:55.713Z] [INFO] Config file is unchanged at init (/Users/krzysztof/scribbledown/index.js:358:24)
+[2025-08-09T18:43:55.713Z] [INFO] Building files... at build (/Users/krzysztof/scribbledown/index.js:88:12)
+[2025-08-09T18:43:55.714Z] [INFO] found previous build, rebuilding at build (/Users/krzysztof/scribbledown/index.js:98:16)
+[2025-08-09T18:43:55.714Z] [INFO] [build]: Building 2.1.6v.md at build (/Users/krzysztof/scribbledown/index.js:110:20)
+[2025-08-09T18:43:56.053Z] [INFO] [build]: Building 2.1.6v.md success at build (/Users/krzysztof/scribbledown/index.js:119:20)
+[2025-08-09T18:43:56.053Z] [INFO] [build]: Building index.md at build (/Users/krzysztof/scribbledown/index.js:110:20)
+[2025-08-09T18:43:56.065Z] [INFO] [build]: Building index.md success at build (/Users/krzysztof/scribbledown/index.js:119:20)
+[2025-08-09T18:43:56.065Z] [INFO] [build]: Building v2.2.0.md at build (/Users/krzysztof/scribbledown/index.js:110:20)
+[2025-08-09T18:43:56.076Z] [INFO] [build]: Building v2.2.0.md success at build (/Users/krzysztof/scribbledown/index.js:119:20)
+[2025-08-09T18:43:56.076Z] [INFO] [build]: Building v2.2.1.md at build (/Users/krzysztof/scribbledown/index.js:110:20)
+[2025-08-09T18:43:56.085Z] [INFO] [build]: Building v2.2.1.md success at build (/Users/krzysztof/scribbledown/index.js:119:20)
+[2025-08-09T18:43:56.086Z] [INFO] Saving checksums... at build (/Users/krzysztof/scribbledown/index.js:154:12)
+[2025-08-09T18:43:56.086Z] [INFO] Build complete! at build (/Users/krzysztof/scribbledown/index.js:156:12)
+[2025-08-09T18:43:56.089Z] [INFO] 
+====
+Server is running on port http://0.0.0.0:3002
+=== at Server.<anonymous> (/Users/krzysztof/scribbledown/index.js:572:16)
+[2025-08-09T18:44:04.013Z] [INFO] New GET request | / | 2025-08-09T18:44:04.012Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:04.088Z] [INFO] New GET request | /favicon.ico | 2025-08-09T18:44:04.088Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:05.892Z] [INFO] New GET request | /v2.2.0 | 2025-08-09T18:44:05.891Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:06.430Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:06.430Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:07.189Z] [INFO] New GET request | /v2.2.0 | 2025-08-09T18:44:07.189Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:07.926Z] [INFO] New GET request | /v2.2.1 | 2025-08-09T18:44:07.926Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:08.759Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:08.759Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:12.776Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:12.776Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:35.918Z] [INFO] hgc at init (/Users/krzysztof/scribbledown/index.js:244:16)
+[2025-08-09T18:44:35.919Z] [INFO] {"blogname":"scribbledown blog","footerContent":"<p>© {year}</p> <a href='https://github.com/duch3201'>shadowman</a>","dev":"true","arePluginsEnabled":"true","currentTheme":"default","port":"3002","logging":{"saveLogToFile":"true","saveLogFilePath":"./logs"}} at init (/Users/krzysztof/scribbledown/index.js:245:16)
+[2025-08-09T18:44:35.919Z] [INFO] Plugins are enabled! at init (/Users/krzysztof/scribbledown/index.js:248:20)
+[2025-08-09T18:44:35.919Z] [INFO] Loading plugins... at init (/Users/krzysztof/scribbledown/index.js:255:24)
+[2025-08-09T18:44:35.919Z] [INFO] [object Object] at init (/Users/krzysztof/scribbledown/index.js:257:24)
+[2025-08-09T18:44:35.920Z] [INFO] [PluginLoader]: Loading plugin defaultThemePlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-09T18:44:35.920Z] [INFO] [PluginLoader]: Registered defaultTheme for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-09T18:44:35.920Z] [INFO] [PluginLoader]: Registered defaultTheme for afterTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-09T18:44:35.921Z] [INFO] [PluginLoader]: Loading plugin emojiPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-09T18:44:35.921Z] [INFO] [PluginLoader]: Registered emojiPlugin for beforeParse at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-09T18:44:35.921Z] [INFO] [PluginLoader]: Loading plugin testPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-09T18:44:35.921Z] [INFO] [PluginLoader]: Registered my-cool-plugin for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-09T18:44:35.921Z] [INFO] Rebuild requested by plugin at init (/Users/krzysztof/scribbledown/index.js:262:28)
+[2025-08-09T18:44:35.921Z] [INFO] Checking template directory at init (/Users/krzysztof/scribbledown/index.js:284:16)
+[2025-08-09T18:44:35.921Z] [INFO] Checking checksums.json at init (/Users/krzysztof/scribbledown/index.js:294:16)
+[2025-08-09T18:44:35.923Z] [INFO] File index.md has changed at /Users/krzysztof/scribbledown/index.js:319:32
+[2025-08-09T18:44:35.924Z] [INFO] Checking template, CSS, and JS files at init (/Users/krzysztof/scribbledown/index.js:339:20)
+[2025-08-09T18:44:35.924Z] [INFO] Template, CSS, and JS files are unchanged at init (/Users/krzysztof/scribbledown/index.js:348:24)
+[2025-08-09T18:44:35.924Z] [INFO] Checking config file for changes at init (/Users/krzysztof/scribbledown/index.js:352:20)
+[2025-08-09T18:44:35.924Z] [INFO] Config file has changed at init (/Users/krzysztof/scribbledown/index.js:355:24)
+[2025-08-09T18:44:35.928Z] [INFO] 
+====
+Server is running on port http://0.0.0.0:3002
+=== at Server.<anonymous> (/Users/krzysztof/scribbledown/index.js:572:16)
+[2025-08-09T18:44:44.648Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:44.648Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:45.945Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:45.945Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:46.311Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:46.311Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:46.513Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:46.512Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:46.674Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:46.674Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:46.811Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:46.811Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:46.997Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:46.997Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:47.164Z] [INFO] New GET request | /2.1.6v | 2025-08-09T18:44:47.164Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-09T18:44:47.763Z] [INFO] New GET request | / | 2025-08-09T18:44:47.763Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T18:56:45.332Z] [INFO] New GET request | / | 2025-08-10T18:56:45.326Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T18:56:50.322Z] [INFO] New GET request | / | 2025-08-10T18:56:50.322Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:01:18.820Z] [INFO] hgc at init (/Users/krzysztof/scribbledown/index.js:244:16)
+[2025-08-10T19:01:18.821Z] [INFO] {"blogname":"scribbledown blog","footerContent":"<p>© {year}</p> <a href='https://github.com/duch3201'>shadowman</a>","dev":"true","arePluginsEnabled":"true","currentTheme":"default","port":"3002","logging":{"saveLogToFile":"true","saveLogFilePath":"./logs"}} at init (/Users/krzysztof/scribbledown/index.js:245:16)
+[2025-08-10T19:01:18.821Z] [INFO] Plugins are enabled! at init (/Users/krzysztof/scribbledown/index.js:248:20)
+[2025-08-10T19:01:18.821Z] [INFO] Loading plugins... at init (/Users/krzysztof/scribbledown/index.js:255:24)
+[2025-08-10T19:01:18.821Z] [INFO] [object Object] at init (/Users/krzysztof/scribbledown/index.js:257:24)
+[2025-08-10T19:01:18.822Z] [INFO] [PluginLoader]: Loading plugin defaultThemePlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-10T19:01:18.823Z] [INFO] [PluginLoader]: Registered defaultTheme for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-10T19:01:18.823Z] [INFO] [PluginLoader]: Registered defaultTheme for afterTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-10T19:01:18.823Z] [INFO] [PluginLoader]: Loading plugin emojiPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-10T19:01:18.823Z] [INFO] [PluginLoader]: Registered emojiPlugin for beforeParse at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-10T19:01:18.824Z] [INFO] [PluginLoader]: Loading plugin testPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-10T19:01:18.824Z] [INFO] [PluginLoader]: Registered my-cool-plugin for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-10T19:01:18.824Z] [INFO] Rebuild requested by plugin at init (/Users/krzysztof/scribbledown/index.js:262:28)
+[2025-08-10T19:01:18.824Z] [INFO] Checking template directory at init (/Users/krzysztof/scribbledown/index.js:284:16)
+[2025-08-10T19:01:18.824Z] [INFO] Checking checksums.json at init (/Users/krzysztof/scribbledown/index.js:294:16)
+[2025-08-10T19:01:18.825Z] [INFO] File index.md has changed at /Users/krzysztof/scribbledown/index.js:319:32
+[2025-08-10T19:01:18.826Z] [INFO] Checking template, CSS, and JS files at init (/Users/krzysztof/scribbledown/index.js:339:20)
+[2025-08-10T19:01:18.826Z] [INFO] Template, CSS, and JS files are unchanged at init (/Users/krzysztof/scribbledown/index.js:348:24)
+[2025-08-10T19:01:18.826Z] [INFO] Checking config file for changes at init (/Users/krzysztof/scribbledown/index.js:352:20)
+[2025-08-10T19:01:18.827Z] [INFO] Config file has changed at init (/Users/krzysztof/scribbledown/index.js:355:24)
+[2025-08-10T19:01:18.834Z] [INFO] 
+====
+Server is running on port http://0.0.0.0:3002
+=== at Server.<anonymous> (/Users/krzysztof/scribbledown/index.js:572:16)
+[2025-08-10T19:01:23.072Z] [INFO] New GET request | / | 2025-08-10T19:01:23.072Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:01:45.090Z] [INFO] hgc at init (/Users/krzysztof/scribbledown/index.js:244:16)
+[2025-08-10T19:01:45.090Z] [INFO] {"blogname":"scribbledown blog","footerContent":"<p>© {year}</p> <a href='https://github.com/duch3201'>shadowman</a>","dev":"true","arePluginsEnabled":"true","currentTheme":"default","port":"3002","logging":{"saveLogToFile":"true","saveLogFilePath":"./logs"}} at init (/Users/krzysztof/scribbledown/index.js:245:16)
+[2025-08-10T19:01:45.091Z] [INFO] Plugins are enabled! at init (/Users/krzysztof/scribbledown/index.js:248:20)
+[2025-08-10T19:01:45.091Z] [INFO] Loading plugins... at init (/Users/krzysztof/scribbledown/index.js:255:24)
+[2025-08-10T19:01:45.091Z] [INFO] [object Object] at init (/Users/krzysztof/scribbledown/index.js:257:24)
+[2025-08-10T19:01:45.092Z] [INFO] [PluginLoader]: Loading plugin defaultThemePlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-10T19:01:45.092Z] [INFO] [PluginLoader]: Registered defaultTheme for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-10T19:01:45.092Z] [INFO] [PluginLoader]: Registered defaultTheme for afterTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-10T19:01:45.093Z] [INFO] [PluginLoader]: Loading plugin emojiPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-10T19:01:45.093Z] [INFO] [PluginLoader]: Registered emojiPlugin for beforeParse at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-10T19:01:45.093Z] [INFO] [PluginLoader]: Loading plugin testPlugin.js at PluginLoader.loadPlugins (/Users/krzysztof/scribbledown/pluginLoader.js:32:29)
+[2025-08-10T19:01:45.093Z] [INFO] [PluginLoader]: Registered my-cool-plugin for beforeTemplate at /Users/krzysztof/scribbledown/pluginLoader.js:39:37
+[2025-08-10T19:01:45.094Z] [INFO] Rebuild requested by plugin at init (/Users/krzysztof/scribbledown/index.js:262:28)
+[2025-08-10T19:01:45.094Z] [INFO] Checking template directory at init (/Users/krzysztof/scribbledown/index.js:284:16)
+[2025-08-10T19:01:45.094Z] [INFO] Checking checksums.json at init (/Users/krzysztof/scribbledown/index.js:294:16)
+[2025-08-10T19:01:45.095Z] [INFO] File index.md has changed at /Users/krzysztof/scribbledown/index.js:319:32
+[2025-08-10T19:01:45.095Z] [INFO] Checking template, CSS, and JS files at init (/Users/krzysztof/scribbledown/index.js:339:20)
+[2025-08-10T19:01:45.095Z] [INFO] Template, CSS, and JS files are unchanged at init (/Users/krzysztof/scribbledown/index.js:348:24)
+[2025-08-10T19:01:45.095Z] [INFO] Checking config file for changes at init (/Users/krzysztof/scribbledown/index.js:352:20)
+[2025-08-10T19:01:45.096Z] [INFO] Config file has changed at init (/Users/krzysztof/scribbledown/index.js:355:24)
+[2025-08-10T19:01:45.102Z] [INFO] 
+====
+Server is running on port http://0.0.0.0:3002
+=== at Server.<anonymous> (/Users/krzysztof/scribbledown/index.js:572:16)
+[2025-08-10T19:01:48.814Z] [INFO] New GET request | / | 2025-08-10T19:01:48.813Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:01:50.078Z] [INFO] New GET request | / | 2025-08-10T19:01:50.078Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:01:50.479Z] [INFO] New GET request | / | 2025-08-10T19:01:50.478Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:01:50.682Z] [INFO] New GET request | / | 2025-08-10T19:01:50.682Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:01:50.869Z] [INFO] New GET request | / | 2025-08-10T19:01:50.869Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:01:53.711Z] [INFO] New GET request | /v2.2.1 | 2025-08-10T19:01:53.711Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:01:59.948Z] [INFO] New GET request | /v2.2.0 | 2025-08-10T19:01:59.948Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:02:06.491Z] [INFO] New GET request | /v2.2.1 | 2025-08-10T19:02:06.491Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:03:10.711Z] [INFO] New GET request | /v2.2.1 | 2025-08-10T19:03:10.710Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:03:11.276Z] [INFO] New GET request | /v2.2.0 | 2025-08-10T19:03:11.276Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:03:11.929Z] [INFO] New GET request | /2.1.6v | 2025-08-10T19:03:11.929Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:11:59.826Z] [INFO] New GET request | /2.1.6v | 2025-08-10T19:11:59.825Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12
+[2025-08-10T19:12:00.874Z] [INFO] New GET request | /v2.2.2 | 2025-08-10T19:12:00.874Z | 127.0.0.1 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 at /Users/krzysztof/scribbledown/index.js:28:12

@@ -1,7 +1,15 @@
 const { getPluginLoader } = require('./pluginLoader');
+const sanitizeHtml = require('sanitize-html');
 const {calculateReadingTime, escapeHtml} = require('./utils');
 
 async function parseMarkdown(markdown) {
+    const allowedTags = ['br', 'strong', 'em', 'i', 'b', 'ul', 'ol', 'li', 'p', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'code', 'pre', 'img', 'a', 'del', 'hr'];
+    const allowedAttributes = {
+        a: ['href', 'title'],
+        img: ['src', 'alt'],
+        code: ['class'],
+        pre: ['class']
+    };
     const pluginLoader = getPluginLoader();
     
     try {
@@ -173,6 +181,11 @@ async function parseMarkdown(markdown) {
         console.error(error.message);
         throw error;
     }
+
+    processedContent = sanitizeHtml(processedContent, {
+        allowedTags,
+        allowedAttributes
+    });
 
     return {
         content: processedContent.trim(),

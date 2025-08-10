@@ -75,7 +75,11 @@ async function build(fileName) {
 
     }
     try {
-        await pluginLoader.executeHook('beforeBuild');
+        if (!blogConfig.arePluginsEnabled) {
+
+        } else {   
+            await pluginLoader.executeHook('beforeBuild');
+        }
     } catch (error) {
         console.error('----------');
         console.error(error.message);
@@ -151,7 +155,11 @@ async function build(fileName) {
     fs.writeFileSync(path.join(__dirname, 'checksums.json'), JSON.stringify(checksums, null, 4));
     logger.info('Build complete!');
     try {
-        await pluginLoader.executeHook('afterBuild');   
+        if (!blogConfig.arePluginsEnabled) {
+
+        } else {
+            await pluginLoader.executeHook('afterBuild');   
+        }
     } catch (error) {
         console.error('----------');
         console.error(error.message);
@@ -174,9 +182,9 @@ async function init() {
     try {
 
         // check if we're running for the first time
-        if (!fs.existsSync(path.join(__dirname, '.scribbledown-pastFirstrun'))) {
-            firstTimeRun();
-        }
+        // if (!fs.existsSync(path.join(__dirname, '.scribbledown-pastFirstrun'))) {
+        //     firstTimeRun();
+        // }
 
         // read and parse config
         try {
@@ -190,7 +198,7 @@ async function init() {
                     blogname: 'scribbledown blog',
                     footerContent: '© {year} scribbledown.',
                     dev: 'false',
-                    arePluginsEnabled: 'false',
+                    arePluginsEnabled: 'true',
                     currentTheme: 'default',
                     port: '3001',
                     logging: {
@@ -234,7 +242,32 @@ async function init() {
         }
 
         logger.info("hgc")
-        
+        logger.info(JSON.stringify(blogConfig))
+        if (blogConfig.arePluginsEnabled === 'true') {
+            arePluginsEnabled = true;
+            logger.info("Plugins are enabled!")
+        } else {
+            arePluginsEnabled = false;
+        }
+
+        if (arePluginsEnabled) {
+            try {
+                logger.info('Loading plugins...');
+                pluginLoader = createPluginLoader(logger);
+                logger.info(pluginLoader)
+                await pluginLoader.loadPlugins();
+                
+                const shouldRebuild = await pluginLoader.executeHook('invokeRebuild');
+                if (shouldRebuild) {
+                    logger.info('Rebuild requested by plugin');
+                    rebuild = true;
+                }
+            } catch (error) {
+                console.error(`--------\nError loading plugins\n${error}`);
+                throw error;
+            }
+        }
+
         const date = new Date();
         const formattedDate = `${date.getDate()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
         // check if the files directory is empty
@@ -331,28 +364,7 @@ async function init() {
         }
 
         // check if plugins are enabled
-        if (blogConfig.arePluginsEnabled === 'true') {
-            arePluginsEnabled = true;
-        } else {
-            arePluginsEnabled = false;
-        }
 
-        if (arePluginsEnabled) {
-            try {
-                logger.info('Loading plugins...');
-                pluginLoader = createPluginLoader(logger);
-                await pluginLoader.loadPlugins();
-                
-                const shouldRebuild = await pluginLoader.executeHook('invokeRebuild');
-                if (shouldRebuild) {
-                    logger.info('Rebuild requested by plugin');
-                    rebuild = true;
-                }
-            } catch (error) {
-                console.error(`--------\nError loading plugins\n${error}`);
-                throw error;
-            }
-        }
             
         if (blogConfig.dev === 'true') {
             console.warn("Running in dev mode!!");
@@ -375,11 +387,15 @@ async function init() {
 
 async function yeettotemplate(template, content, frontmatter, processedLinks) {
     try {
-        // logger.info(frontmatter)
-        const [newTemplate, newContent, newFrontmatter] = await pluginLoader.executeHook('beforeTemplate', template, content, frontmatter);
-        template = newTemplate;
-        content = newContent;
-        frontmatter = newFrontmatter;
+        if (!blogConfig.arePluginsEnabled) {
+
+        } else {
+            // logger.info(frontmatter)
+            const [newTemplate, newContent, newFrontmatter] = await pluginLoader.executeHook('beforeTemplate', template, content, frontmatter);
+            template = newTemplate;
+            content = newContent;
+            frontmatter = newFrontmatter;
+        }
         // logger.info('\n\n[yettotemplate (beforeTemplate Hook)]: \n',newTemplate)
     } catch (error) {
         console.error('----------');
@@ -446,10 +462,15 @@ async function yeettotemplate(template, content, frontmatter, processedLinks) {
 
     try {
         // logger.info(processedLinks)
-        const processedLinksl = processedLinks;
-        const [newNewTemplate] = await pluginLoader.executeHook('afterTemplate', template, content, frontmatter, processedLinksl);
-        template = newNewTemplate;
-        // logger.info("\n\n[yettotemplate (afterTemplate Hook)]: ",newNewTemplate)
+        if (!blogConfig.arePluginsEnabled) {
+
+        } else {
+
+            const processedLinksl = processedLinks;
+            const [newNewTemplate] = await pluginLoader.executeHook('afterTemplate', template, content, frontmatter, processedLinksl);
+            template = newNewTemplate;
+            // logger.info("\n\n[yettotemplate (afterTemplate Hook)]: ",newNewTemplate)
+        }
     } catch (error) {
         console.error('----------');
         console.error(error.message);

@@ -41,6 +41,8 @@ function generateChecksum(str, algorithm, encoding) {
         .digest(encoding || 'hex');
 }
 
+
+// this function is a mess, do not use!
 /**
  * a helper function made to help with first time initialization / after update initalization
  * TODO: 
@@ -86,7 +88,7 @@ async function firstTimeRun() {
             const defaultConfig = {
                 blogname: "scribbledown blog",
                 footerContent: "<p>© {year}</p> <a href='https://github.com/duch3201'>shadowman</a>",
-                dev: "true",
+                dev: "false",
                 arePluginsEnabled: "true",
                 currentTheme: "default"
             };
@@ -129,7 +131,12 @@ function scanPlugins() {
 }
  
 function escapeHtml(str) {
-    return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 module.exports = {
